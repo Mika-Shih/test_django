@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>登入</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="formcontainer" class="container">
+        <a href="/user/sign_up">sign up</a>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+
+        // 建立標題元素
+        var title = document.createElement('h2');
+        title.textContent = '登入';
+
+        // 建立使用者名稱輸入框
+        var usernameLabel = document.createElement('label');
+        usernameLabel.htmlFor = 'username';
+        usernameLabel.textContent = '使用者名稱';
+
+        var usernameInput = document.createElement('input');
+        usernameInput.type = 'text';
+        usernameInput.id = 'username';
+        usernameInput.name = 'username';
+        usernameInput.required = true;
+
+        var usernameError = document.createElement('div');
+        usernameError.id = 'usernameError';
+        usernameError.classList.add('error');
+
+        // 建立密碼輸入框
+        var passwordLabel = document.createElement('label');
+        passwordLabel.htmlFor = 'password';
+        passwordLabel.textContent = '密碼';
+
+        var passwordInput = document.createElement('input');
+        passwordInput.type = 'password';
+        passwordInput.id = 'password';
+        passwordInput.name = 'password';
+        passwordInput.required = true;
+
+        var passwordError = document.createElement('div');
+        passwordError.id = 'passwordError';
+        passwordError.classList.add('error');
+
+        // 建立提交按鈕
+        var submitButton = document.createElement('button');
+        submitButton.type = 'submit';
+        submitButton.textContent = '登入';
+
+        // 將元素組合起來
+        var formContainer = document.getElementById('formcontainer'); // 替換成實際的容器元素 id
+        formContainer.appendChild(title);
+        formContainer.appendChild(usernameLabel);
+        formContainer.appendChild(usernameInput);
+        formContainer.appendChild(usernameError);
+        formContainer.appendChild(passwordLabel);
+        formContainer.appendChild(passwordInput);
+        formContainer.appendChild(passwordError);
+        formContainer.appendChild(submitButton);
+
+        submitButton.addEventListener('click', function () {
+            // 簡單的前端驗證
+            if (usernameInput.value.trim() === "") {
+                document.getElementById("usernameError").innerHTML = "請輸入使用者名稱";
+                return false;
+            }
+            if (passwordInput.value === "") {
+                document.getElementById("passwordError").innerHTML = "請輸入密碼";
+                return false;
+            }
+            // 進行帳號密碼檢驗
+            if (usernameInput.value.length < 15 || passwordInput.value.length < 8) {
+                //event.preventDefault();
+                alert('帳號或密碼格式不正確');
+                return false;
+            }
+
+            
+
+
+            var username = usernameInput.value;
+            var password = passwordInput.value;
+
+            var requestData = {
+                'email': username,
+                'password': password
+            };
+
+            axios.post('/user/verify/', requestData)
+                .then(function (response) {
+                    console.log(response.data)
+                    if (response.data.success == true) {
+                        alert("登入成功");
+                        document.cookie = `token=${response.data.token}; expires=${new Date(new Date().getTime() + 3600 * 1000).toUTCString()}; path=/`;
+                        // window.location.href = response.data.redirect_url;
+                        window.location.href = "/polls/";
+                    }
+                    else if(response.data.error) {
+                        console.log(response.data.error);
+                        alert(response.data.error);
+                    }
+                })
+                .catch(error => {
+                    alert("儲存失敗");
+                    console.error(error);
+                });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,448 @@
+{% load static %}
+<!DOCTYPE html>
+
+<head>
+    <link rel="style" href="{%static 'polls/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <style>
+        td {
+            position: relative;
+            /*相對位置布局 沒有則下拉框會不見*/
+        }
+
+        .input[type="text"] {
+            width: 200%;
+            position: relative;
+        }
+
+        .data-display {
+            position: absolute;
+            left: 0;
+            top: 100%;
+            /* 將 top 設置為 100% 以覆蓋容器 */
+            width: fit-content;
+            /* 設置 */
+            width: 200%;
+            max-height: 400px;
+            overflow: auto;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            padding: 5px;
+            z-index: 2;
+            /* 設置較高的 z-index 值 */
+        }
+
+        .data-display span {
+            display: block;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .data-display span:hover {
+            background-color: #f2f2f2;
+            /* 鼠標懸停時的背景顏色 */
+        }
+
+        .left-div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-row label {
+            width: 120px;
+            margin-right: 10px;
+        }
+
+        .input-row input,
+        .input-row textarea {
+            width: 100%;
+            max-width: 200px;
+        }
+
+
+
+        .container {
+            display: flex;
+            position: relative;
+        }
+
+        .left-container {
+            flex: 1;
+            padding: 10px;
+            /* 添加适当的样式 */
+            border: 1px solid #ccc;
+            /* 添加适当的样式 */
+        }
+
+        .right-container {
+            flex: 1;
+            padding: 10px;
+            /* 添加适当的样式 */
+            border: 1px solid #ccc;
+            /* 添加适当的样式 */
+        }
+    </style>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+    <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<body>
+    <div class="loading"></div>
+    <div class="container">
+        <div id="version_div" class="left-container">
+            <button id="add_version">送出</button>
+            <div id="upload">
+                <label for="file">選擇文件：</label>
+                <input type="file" name="file" id="file">
+            </div>
+        </div>
+    </div>
+    <!--select2-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!--select2-->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            hideLoading();
+        });
+        const categoryoption = ['PowerStressTest', 'WLAN_BT', 'NFC', 'LAN', 'DOCK_LAN', 'WWAN_GPS'];
+        //const subdeviceoption = ['PowerStressTest', 'WLAN', 'BT', 'NFC', 'LAN', 'DOCK', 'DOCK_LAN', 'GNSS', 'WWANNET', 'USB', 'MCD', 'MBIM', 'PCIE'];
+        const version_div = document.getElementById('version_div');
+        const inputElements = [
+            { label: 'Short name:', type: 'input', id: 'shortname_select', name: 'shortname_select' },
+            { label: 'Device/Tool:', type: 'input', id: 'longname_select', name: 'devicetool_select' },
+            { label: 'Sub Device:', type: 'input', id: 'subdevice_select', name: 'subdevice_select' },
+            { label: 'Package Version:', type: 'text', id: 'packageversion', name: 'packageversion' },
+            { label: 'Detail Version:', type: 'textarea', id: 'detailversion', name: 'detailversion', rows: 4 }
+        ];
+        (async () => {
+            for (const input of inputElements) {
+                const div = document.createElement('div');
+                //inputRow.classList.add('input-row');
+                const label = document.createElement("label");
+                const inputElement = input.type === 'input'   // 判別式
+                    ? document.createElement("div")
+                    : document.createElement("input");
+
+                label.setAttribute('for', input.id);
+                label.textContent = input.label;
+                inputElement.classList.add("inputElement");
+                console.log(input.id)
+                if (input.id === 'shortname_select') {
+                    const td = document.createElement("td");
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.classList.add("input");
+                    td.appendChild(input);
+                    input.addEventListener("focus", async function () {
+                        const dataDisplay = document.createElement("div");
+                        dataDisplay.classList.add("data-display");
+                        const response = await axios.get('/pulsar/select_short_name/');
+                        const short_name_option = response.data.short_name;
+                        console.log(short_name_option)
+                        for (const optionData of short_name_option) {
+                            const option = document.createElement("span");
+                            option.textContent = optionData;
+                            input.addEventListener("input", function () {
+                                const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                                const options = Array.from(dataDisplay.children);
+                                options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                                    const aText = a.textContent.toLowerCase();
+                                    const bText = b.textContent.toLowerCase();
+                                    return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                                });
+                                // 清空下方顯示框的內容
+                                dataDisplay.innerHTML = "";
+                                options.forEach(option => {   //options選項放入選單中
+                                    dataDisplay.appendChild(option);
+                                    if (option.textContent.toLowerCase().includes(searchText)) {
+                                        option.style.display = "block";
+                                    } else {
+                                        option.style.display = "none";
+                                    }
+                                });
+                            });
+                            option.addEventListener("click", function () {
+                                if (input.value != optionData) {
+                                    input.value = optionData;
+                                    document.getElementById("longname_select").querySelector('input').value = '';
+                                    document.getElementById("subdevice_select").querySelector('input').value = '';
+                                }
+                                dataDisplay.remove();
+                            });
+                            dataDisplay.appendChild(option);
+                        };
+                        td.appendChild(dataDisplay);
+                    });
+                    inputElement.appendChild(td);
+                }
+                else if (input.id === 'longname_select') {
+                    const td = document.createElement("td");
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.classList.add("input");
+                    td.appendChild(input);
+                    input.addEventListener("focus", async function () {
+                        const dataDisplay = document.createElement("div");
+                        dataDisplay.classList.add("data-display");
+                        var requestData = { 'shortname': [document.getElementById("shortname_select").querySelector('input').value] }
+                        console.log(requestData)
+                        const response = await axios.post('/pulsar/select_long_name/', requestData);
+                        const long_name_option = response.data.long_name;
+                        console.log(long_name_option)
+                        for (const optionData of long_name_option) {
+                            const option = document.createElement("span");
+                            option.textContent = optionData;
+                            input.addEventListener("input", function () {
+                                const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                                const options = Array.from(dataDisplay.children);
+                                options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                                    const aText = a.textContent.toLowerCase();
+                                    const bText = b.textContent.toLowerCase();
+                                    return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                                });
+                                // 清空下方顯示框的內容
+                                dataDisplay.innerHTML = "";
+                                options.forEach(option => {   //options選項放入選單中
+                                    dataDisplay.appendChild(option);
+                                    if (option.textContent.toLowerCase().includes(searchText)) {
+                                        option.style.display = "block";
+                                    } else {
+                                        option.style.display = "none";
+                                    }
+                                });
+                            });
+                            option.addEventListener("click", function () {
+                                if (input.value != optionData) {
+                                    input.value = optionData;
+                                    document.getElementById("subdevice_select").querySelector('input').value = '';
+                                }
+                                dataDisplay.remove();
+                            });
+                            dataDisplay.appendChild(option);
+                        };
+                        td.appendChild(dataDisplay);
+                    });
+                    inputElement.appendChild(td);
+                }
+                else if (input.id === 'subdevice_select') {
+                    const td = document.createElement("td");
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.classList.add("input");
+                    td.appendChild(input);
+                    input.addEventListener("focus", async function () {
+                        const dataDisplay = document.createElement("div");
+                        dataDisplay.classList.add("data-display");
+                        var requestData = {
+                            'short_name': [document.getElementById("shortname_select").querySelector('input').value],
+                            'long_name': [document.getElementById("longname_select").querySelector('input').value]
+                        }
+                        console.log(requestData)
+                        const response = await axios.post('/pulsar/select_subdevice/', requestData);
+                        const subdevice_option = response.data.subdevice;
+                        console.log(subdevice_option)
+                        for (const optionData of subdevice_option) {
+                            const option = document.createElement("span");
+                            option.textContent = optionData;
+                            input.addEventListener("input", function () {
+                                const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                                const options = Array.from(dataDisplay.children);
+                                options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                                    const aText = a.textContent.toLowerCase();
+                                    const bText = b.textContent.toLowerCase();
+                                    return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                                });
+                                // 清空下方顯示框的內容
+                                dataDisplay.innerHTML = "";
+                                options.forEach(option => {   //options選項放入選單中
+                                    dataDisplay.appendChild(option);
+                                    if (option.textContent.toLowerCase().includes(searchText)) {
+                                        option.style.display = "block";
+                                    } else {
+                                        option.style.display = "none";
+                                    }
+                                });
+                            });
+                            option.addEventListener("click", function () {
+                                input.value = optionData;
+                                dataDisplay.remove();
+                            });
+                            dataDisplay.appendChild(option);
+                        };
+                        td.appendChild(dataDisplay);
+                    });
+                    inputElement.appendChild(td);
+                }
+                inputElement.setAttribute("type", "text");
+                inputElement.setAttribute("id", input.id);
+                inputElement.setAttribute("name", input.name);
+                div.appendChild(label);
+                div.appendChild(inputElement);
+                version_div.appendChild(div);
+            };
+        })();
+
+        document.getElementById("add_version").addEventListener("click", function () {
+            showLoading();
+            const file_data = document.getElementById("file").files[0];
+            var finaldata = {
+                'shortname': document.getElementById("shortname_select").querySelector('input').value, 
+                'longname': document.getElementById("longname_select").querySelector('input').value,
+                'subdevice': document.getElementById("subdevice_select").querySelector('input').value,
+                'packageversion': document.getElementById("packageversion").value,
+                'detailversion': document.getElementById("detailversion").value
+            }
+            const requestData = {
+                'finaldata': JSON.stringify(finaldata),
+                'file': file_data
+            };
+            axios.post('/pulsar/create_version/', requestData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+                .then(function (response) {
+                    if (response.data.redirect_url) { window.location.replace(response.data.redirect_url); }
+                    else if (response.data.error) { alert(response.data.error); }
+                })
+                .catch(function (error) {
+                    // 登出失敗，顯示錯誤消息或執行其他處理
+                    console.error(error);
+                })
+                .finally(() => {
+                    hideLoading();
+                })
+        });
+        document.getElementById('file').addEventListener('change', function () {
+            const allowedExtensions = ['zip'];
+            const fileName = this.files[0].name;
+            const fileExtension = fileName.split('.').pop();
+            console.log(fileExtension)
+            if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
+                alert('只允許上傳 .zip檔案');
+                this.value = '';
+            }
+        });
+        
+        //這邊沒用到
+        function select_input(option, container) {
+            const td = document.createElement("td");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.classList.add("input");
+            td.appendChild(input);
+            input.addEventListener("focus", function () {
+                const dataDisplay = document.createElement("div");
+                dataDisplay.classList.add("data-display");
+                dataDisplay.style.position = 'absolute';
+                dataDisplay.style.left = '0';
+                dataDisplay.style.top = '100%';
+                dataDisplay.style.width = 'fit-content';
+                dataDisplay.style.maxHeight = '200px';
+                dataDisplay.style.overflow = 'auto';
+                dataDisplay.style.backgroundColor = '#ffffff';
+                dataDisplay.style.border = '1px solid #cccccc';
+                dataDisplay.style.padding = '5px';
+                dataDisplay.style.zIndex = '2';
+
+                option.forEach(optionData => {
+                    const option = document.createElement("span");
+                    option.textContent = optionData;
+                    option.addEventListener("click", function () {
+                        event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                        //groupcombine(optionData, indexrow);
+                        //spaninput();
+                    });
+                    dataDisplay.appendChild(option);
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    option.addEventListener("click", function () {
+                        input.value = optionData;
+                        dataDisplay.remove();
+                        console.log(input.value)
+                    });
+
+                });
+                td.appendChild(dataDisplay);
+            });
+
+            container.appendChild(td);
+            console.log(td)
+            //CSS
+            td.style.position = 'relative';
+            const dataDisplay = document.querySelectorAll('.data-display');
+            console.log(dataDisplay)
+            dataDisplay.forEach((dataDisplay) => {
+                dataDisplay.style.position = 'absolute';
+                dataDisplay.style.left = '0';
+                dataDisplay.style.top = '100%';
+                dataDisplay.style.width = 'fit-content';
+                dataDisplay.style.maxHeight = '200px';
+                dataDisplay.style.overflow = 'auto';
+                dataDisplay.style.backgroundColor = '#ffffff';
+                dataDisplay.style.border = '1px solid #cccccc';
+                dataDisplay.style.padding = '5px';
+                dataDisplay.style.zIndex = '2';
+            });
+            const spanElements = document.querySelectorAll('.data-display span');
+            spanElements.forEach((span) => {
+                span.style.display = 'block';
+                span.style.padding = '5px';
+                span.style.cursor = 'pointer';
+            });
+            spanElements.forEach((span) => {
+                span.addEventListener('mouseover', () => {
+                    span.style.backgroundColor = '#f2f2f2';
+                });
+
+                span.addEventListener('mouseout', () => {
+                    span.style.backgroundColor = '';
+                });
+            });
+        }
+
+
+    </script>
+
+
+    <script src="{%static 'polls/js/bootstrap.bundle.min.js'%}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>
+{% load static %}

@@ -1,0 +1,2613 @@
+{% load static %}
+<!DOCTYPE html>
+
+<head>
+  <link rel="style" href="{%static 'polls/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+  <style>
+    .table,
+    .lendtable {
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+
+    .table th,
+    .table td,
+    .lendtable th,
+    .lendtable td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+    }
+
+    .table th,
+    .lendtable th {
+      background-color: #f2f2f2;
+      font-size: 14px;
+    }
+
+    .table td,
+    .lendtable td {
+      font-size: 12px;
+    }
+
+    table tr td:nth-child(1),
+    table tr th:nth-child(1) {
+      min-width: 30px;
+      max-width: 30px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(2),
+    table tr th:nth-child(2),
+    .lendtable tr td:nth-child(1) {
+      max-width: 150px;
+      min-width: 150px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(3),
+    table tr th:nth-child(3),
+    .lendtable tr td:nth-child(2) {
+      max-width: 60px;
+      min-width: 60px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(4),
+    table tr th:nth-child(4),
+    .lendtable tr td:nth-child(3) {
+      max-width: 70px;
+      min-width: 70px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(5),
+    table tr th:nth-child(5),
+    .lendtable tr td:nth-child(4) {
+      max-width: 120px;
+      min-width: 120px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(6),
+    table tr th:nth-child(6),
+    .lendtable tr td:nth-child(5) {
+      max-width: 60px;
+      min-width: 60px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(7),
+    table tr th:nth-child(7),
+    .lendtable tr td:nth-child(6) {
+      max-width: 60px;
+      min-width: 60px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(8),
+    table tr th:nth-child(8),
+    .lendtable tr td:nth-child(7) {
+      max-width: 120px;
+      min-width: 120px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(9),
+    table tr th:nth-child(9),
+    .lendtable tr td:nth-child(8) {
+      max-width: 100px;
+      min-width: 100px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(10),
+    table tr th:nth-child(10),
+    .lendtable tr td:nth-child(9) {
+      max-width: 80px;
+      min-width: 80px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(11),
+    table tr th:nth-child(11),
+    .lendtable tr td:nth-child(10) {
+      max-width: 70px;
+      min-width: 70px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(12),
+    table tr th:nth-child(12),
+    .lendtable tr td:nth-child(11) {
+      max-width: 70px;
+      min-width: 70px;
+      height: 40px;
+    }
+
+    table tr td:nth-child(13),
+    table tr th:nth-child(13),
+    .lendtable tr td:nth-child(12) {
+      max-width: 200px;
+      min-width: 200px;
+      height: 40px;
+    }
+
+    table tr,
+    .lendtable tr {
+      word-wrap: break-word;
+      /*自動換行*/
+      white-space: normal;
+      /*允許換行*/
+    }
+
+
+    .data-display {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      /* 將 top 設置為 100% 以覆蓋容器 */
+      width: fit-content;
+      /* 設置 */
+      width: 220%;
+      max-height: 200px;
+      overflow: auto;
+      background-color: #ffffff;
+      border: 1px solid #cccccc;
+      padding: 5px;
+      z-index: 2;
+      /* 設置較高的 z-index 值 */
+    }
+
+    .data-display span {
+      display: block;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    .data-display span:hover {
+      background-color: #f2f2f2;
+      /* 鼠標懸停時的背景顏色 */
+    }
+
+    /*
+    .table tr td:nth-child(14),
+    .newtable tr td:nth-child(13) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+    */
+
+    .pagination {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .pagination li {
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    .pagination li a {
+      display: block;
+      padding: 6px 10px;
+      text-decoration: none;
+      background-color: #f2f2f2;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .pagination li.current a {
+      background-color: #333;
+      color: #fff;
+    }
+
+
+    .popup-container,
+    .lendcontainer,
+    .mailproxycontainer {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      max-height: 700px;
+      overflow-y: auto;
+    }
+
+    .lendcheckcontainer {
+      position: fixed;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .popup-content,
+    .lendcontent,
+    .lendcheckcontent,
+    .mailproxycontent {
+      width: 100%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+
+    .overlay {
+      /* 反灰效果的樣式 */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      /* 調整反灰的透明度 */
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .dropdown-menu {
+      display: none;
+      max-height: 250px;
+      overflow-y: auto;
+      /* 添加垂直捲軸 */
+    }
+
+    .dropdown.show .dropdown-menu {
+      display: block;
+    }
+
+    #tableContainer {
+      max-height: 800px;
+      /* 调整为适合的高度 */
+      overflow-y: auto;
+    }
+
+    .headers {
+      position: sticky;
+      left: 0;
+      top: 0;
+      background-color: white;
+      /* 可選 為了使列在最上方顯示 */
+    }
+
+    .lenddropdown {
+      width: 200px;
+      /* 設置適當的寬度值 */
+    }
+
+    .custom-button {
+      position: absolute;
+      top: 0.5%;
+      right: 20%;
+    }
+
+    /*代理發信*/
+    .email-form {
+      width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .input-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .input-container label {
+      width: 80px;
+    }
+
+    .input-container input[type="text"],
+    .input-container textarea {
+      flex: 1;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    .input-container textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    #send-button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #send-button:hover {
+      background-color: #0056b3;
+    }
+
+    .styled-option {
+      border: 1px solid #ccc;
+      padding: 5px;
+      margin: 2px;
+      display: inline-block;
+    }
+
+    .selected-options {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    li:hover {
+      background-color: #f5f5f5;
+      /* 灰色背景色 */
+      transition: background-color 0.2s ease-in-out;
+      /* 漸變效果 */
+    }
+
+    /* 表頭容器 */
+    #tableHeaderContainer {
+      position: sticky;
+      top: 0;
+      background-color: #f0f0f0;
+      z-index: 1;
+    }
+
+    .sn_cell {
+      color: blue;
+      /*添加下划線，模擬連結下滑線
+      text-decoration: underline;*/
+      cursor: pointer;
+      /* 滑鼠手型標 */
+    }
+
+
+    /* 數據容器 */
+    #tableDataContainer {
+      max-height: 481px;
+      overflow-y: auto;
+    }
+
+    .title-filter {
+      position: fixed;
+      top: 50%;
+      left: 40%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .title-filter-content {
+      width: 200%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+
+
+      display: grid;
+      grid-template-columns: 1fr;
+      /* 1 列 */
+      grid-gap: 5px;
+      /* 设置每个 span 之间的垂直和水平间距 */
+      /* 其他样式属性 */
+      /*display: flex;*/
+      flex-direction: column;
+    }
+
+    .title-filter-hide {
+      /* 反灰效果的樣式 */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      /* 調整反灰的透明度 */
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .filter_cell {
+      color: blue;
+      cursor: pointer;
+    }
+
+    .filter_cell_clicked {
+      color: orange;
+      cursor: pointer;
+    }
+  </style>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+  <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<body>
+  <button id="filterBtn" class="btn btn-primary">篩選</button>
+  <div id="popupContainer" class="popup-container">
+    <div id="popupContent" class="popup-content">
+      <h2>選擇篩選條件</h2>
+      <div class="dropdown">
+        <button class="dropdown-toggle" type="button" id="targetDropdown" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Target
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="targetDropdown" id="targetDropdownMenu">
+          <li>
+            <input type="checkbox" id="selectAllTargetsCheckbox" />
+            <label for="selectAllTargetsCheckbox">select all</label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle" type="button" id="groupDropdown" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Group
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="groupDropdown" id="groupDropdownMenu">
+          <li>
+            <input type="checkbox" id="selectAllGroupsCheckbox" />
+            <label for="selectAllGroupsCheckbox">select all</label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle" type="button" id="cycleDropdown" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Cycle
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="cycleDropdown" id="cycleDropdownMenu">
+          <li>
+            <input type="checkbox" id="selectAllCyclesCheckbox" />
+            <label for="selectAllCyclesCheckbox">Select all</label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle" type="button" id="platformDropdown" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Platform
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="platformDropdown" id="platformDropdownMenu">
+          <li>
+            <input type="checkbox" id="selectAllPlatformsCheckbox" />
+            <label for="selectAllPlatformsCheckbox">select all</label>
+          </li>
+        </ul>
+      </div>
+      <div class="dropdown">
+        <button class="dropdown-toggle" type="button" id="phaseDropdown" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Phase
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="phaseDropdown" id="phaseDropdownMenu">
+          <li>
+            <input type="checkbox" id="selectAllPhasesCheckbox" />
+            <label for="selectAllPhasesCheckbox">select all</label>
+          </li>
+        </ul>
+      </div>
+      <div class="dropdown">
+        <button class="dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Status
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="statusDropdown" id="statusDropdownMenu">
+          <li>
+            <input type="checkbox" id="selectAllStatusCheckbox" />
+            <label for="selectAllStatusCheckbox">select all</label>
+          </li>
+        </ul>
+      </div>
+      <br>
+      <div id="searchInputsContainer" class="search-inputs-container"></div>
+      <br>
+      <div id="selectedOptionsDiv"></div>
+      <br>
+      <button id="applyFilterBtn" class="btn btn-primary">應用篩選</button>
+      <button id="clear" class="btn btn-primary">清除</button>
+    </div>
+  </div>
+  <div id="overlay" class="overlay"></div><!--反灰-->
+
+  <button id="gg">測試</button>
+  <button id="getDataBtn">查看所有</button>
+  <button id="add">新增機台</button>
+  <input type="text" id="searchInput" placeholder="Sn/platform/borrower" style="width: 300px;">
+  <button id="searchButton">搜索</button>
+  <select id="IURselect">
+    <option value="lend">借出</option>
+    <option value="return">歸還</option>
+    <option value="newplatform">新機入庫</option>
+    <option value="change">批次修改</option>
+    <option value="delete">批次刪除</option>
+    <option value="scrap">批次報廢機台</option>
+  </select>
+  <button id="confirmButton">確認</button>
+  <button id="logout" class="custom-button">登出</button>
+  <div class="title-filter" id="title_filter">
+    <div class="title-filter-content" id="title_filter_content"></div>
+  </div>
+  <div class="title-filter" id="title_filter_target">
+    <div class="title-filter-content" id="title_filter_content_target"></div>
+  </div>
+  <div class="title-filter" id="title_filter_status">
+    <div class="title-filter-content" id="title_filter_content_status"></div>
+  </div>
+  <div class="title-filter-hide" id="title_filter_hide"></div>
+  <div id="tableContainer">
+    <div class="table-header" id="tableHeaderContainer"></div>
+    <div class="table-data" id="tableDataContainer"></div>
+  </div>
+  <div id="paginationContainer"></div>
+  <div id="hint_machine_arrive_mail"></div>
+  <br>
+  <br>
+  <br>
+  <button id="addmember">新增人員</button>
+
+  <div id="lendContainer" class="lendcontainer">
+    <div id="lendContent" class="lendcontent">
+      <h2>請選擇借出人員</h2> <!-- 2級標籤-->
+      <div id="lendinput"></div>
+      <div id="lendtable"></div>
+      <div id="cc_mail_input"></div>
+      <br>
+      <button id="lendconfirm">確定</button>
+      <button id="lendcancel">取消</button>
+    </div>
+  </div>
+  <div id="lendcheckcontainer" class="lendcheckcontainer">
+    <div id="lendcheckcontent" class="lendcheckcontent">
+      <h3>確定新增以上內容?</h3> <!-- 2級標籤-->
+      <button id="lendcheckconfirm">確定</button>
+      <button id="lendcheckcancel">取消</button>
+    </div>
+  </div>
+  <button id="proxybutton">代理發信</button>
+  <!--代理發信功能-->
+  <div id="mailproxycontainer" class="mailproxycontainer">
+    <div id="mailproxycontent" class="mailproxycontent">
+      <div class="email-form">
+        <div class="input-container">
+          <label for="subject">Subject:</label>
+          <input type="text" id="subject" name="subject">
+        </div>
+        <div class="input-container">
+          <label for="to">To:</label>
+          <input type="text" id="to" name="to">
+        </div>
+        <div class="input-container">
+          <label for="cc">cc:</label>
+          <input type="text" id="cc" name="cc">
+        </div>
+        <div class="input-container">
+          <label for="body">Body:</label>
+          <textarea id="body" name="body"></textarea>
+        </div>
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+  </div>
+  <div class="loading"></div>
+
+  <!--select2-->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <!--select2-->
+  <script src="{% static 'polls/js/axios/dist/axios.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      hideLoading();
+    });
+    //hint 機台通知信
+    axios.get('/polls/hint_machine_arrive_mail/')
+      .then(function (response) {
+        const data = response.data.record_count
+        const hint_machine_arrive_mail = document.getElementById("hint_machine_arrive_mail");
+        hint_machine_arrive_mail.innerHTML = "Hint: 尚有" + data + "台(機台),未寄出通知信";
+      })
+      .catch(error => {
+        alert("取得資料失敗 請聯繫管理員");
+        console.error(error);
+      })
+      .finally(() => {
+      });
+
+    document.getElementById("gg").addEventListener("click", function () {
+      const tableContainer = document.getElementById("tableContainer");
+      console.log(tableContainer);
+      tableContainer.innerHTML = "";
+    });
+
+    function selectvaluediv() {
+      const selectTarget = getSelectedValues("targetDropdownMenu")
+      const selectGroup = getSelectedValues("groupDropdownMenu")
+      const selectedCycles = getSelectedValues("cycleDropdownMenu")
+      const selectPlatform = getSelectedValues("platformDropdownMenu")
+      const selectStatus = getSelectedValues("statusDropdownMenu")
+      const selectPhase = getSelectedValues("phaseDropdownMenu")
+      // 將選項包裝成帶框框的元素
+      const formatOptions = options => {
+        return options.map(option => `<div class="styled-option">${option}</div>`).join("");
+      };
+      // 將所有被勾選的選項組合成一個陣列
+      const selectedOptions = [
+        ...formatOptions(selectTarget),
+        ...formatOptions(selectGroup),
+        ...formatOptions(selectedCycles),
+        ...formatOptions(selectPlatform),
+        ...formatOptions(selectPhase),
+        ...formatOptions(selectStatus)
+      ];
+      // 建立 selectedOptionsHTML 字符串，只有在有被勾選的選項時才顯示
+      const selectedOptionsHTML = selectedOptions.length > 0
+        ? `<div class="selected-option-box">${selectedOptions.join("")}</div>`
+        : '';
+
+      const selectedOptionsDiv = document.getElementById("selectedOptionsDiv");
+      selectedOptionsDiv.innerHTML = selectedOptionsHTML;
+      function getSelectedValues(containerId) {
+        const selectedValues = Array.from(document.querySelectorAll(`#${containerId} input[type='checkbox']:checked`))
+          .map(checkbox => {
+            const value = checkbox.value;
+            // 排除on的複選框
+            if (value === "on") {
+              return null;
+            }
+            // none => 空集合
+            if (value === "none") {
+              return "";
+            }
+            return value;
+          })
+          .filter(value => value !== null); // 過濾null
+        return selectedValues;
+      }
+    }
+    window.onbeforeunload = function () {
+      // 重新載入頁面
+      window.location.reload();
+    };
+    const title_filter_target = document.getElementById("title_filter_target");
+    const title_filter_content_target = document.getElementById("title_filter_content_target");
+    axios.get('/polls/api/target/')
+      .then(function (response) {
+        console.log(response.data.target)
+        const data = response.data.target
+        filter_content(title_filter_content_target, data, "target", 3)
+      })
+      .catch(error => {
+        alert("取得資料失敗 請聯繫管理員");
+        console.error(error);
+      })
+      .finally(() => {
+      });
+    const title_filter_status = document.getElementById("title_filter_status");
+    const title_filter_content_status = document.getElementById("title_filter_content_status");
+    axios.get('/polls/api/status/')
+      .then(function (response) {
+        console.log(response.data.status)
+        const data = response.data.status
+        filter_content(title_filter_content_status, data, "status", 9)
+      })
+      .catch(error => {
+        alert("取得資料失敗 請聯繫管理員");
+        console.error(error);
+      })
+      .finally(() => {
+      });
+
+
+
+
+
+
+
+    const indexdb = { target: '', group: '', cycle: '', platform: '', SN: '', phase: '', status: '', machine_arrive_mail: '' };
+    axios.post('/polls/api/filtersearch/', indexdb)
+      .then(function (response) {
+        const data = response.data.finaldata.map(item => {
+          return {
+            ...item,
+            'update_time': formatTimeForFrontend(item['update_time']),
+          };
+        });
+        sessionStorage.setItem("currentPage", "1"); //刷新成第1頁
+        selectedData = []; //清空數據暫存
+        getDataAndUpdateTable(data, 20);
+
+      })
+      .catch(error => {
+        alert("取得資料失敗 請聯繫管理員");
+        console.error(error);
+      })
+      .finally(() => {
+      });
+    //搜索框
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        platform_borrower_sn_search();
+      }
+    });
+    const searchButton = document.getElementById('searchButton');
+    searchButton.addEventListener('click', platform_borrower_sn_search);
+
+    function platform_borrower_sn_search() {
+      const keyword = searchInput.value.trim(); // 搜索關鍵字去首尾空格
+      const widthsearch = JSON.stringify({ keyword: [keyword] })
+      console.log(widthsearch);
+      fetch(`/polls/api/widthsearch?widthsearch=${widthsearch}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data)
+          // 更新表格
+          sessionStorage.setItem("currentPage", "1");
+          selectedData = [];
+          getDataAndUpdateTable(data, 20);
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    };
+    //新增頁面(add)
+    document.getElementById("add").addEventListener("click", function () {
+      const nextUrl = "/polls/api/addsn"
+      window.location.href = nextUrl;
+    });
+
+    document.getElementById("applyFilterBtn").addEventListener("click", function () {
+      function getSelectedValues(containerId) {
+        const selectedValues = Array.from(document.querySelectorAll(`#${containerId} input[type='checkbox']:checked`))
+          .map(checkbox => {
+            const value = checkbox.value;
+            // 排除on的複選框
+            if (value === "on") {
+              return null;
+            }
+            // none => 空集合
+            if (value === "none") {
+              return "";
+            }
+            return value;
+          })
+          .filter(value => value !== null); // 過濾null
+        return selectedValues;
+      }
+
+      Serial_Number = Array.from(document.querySelectorAll("#searchInputsContainer .search-input input")).map(function (input) {
+        return input.value.trim();
+      }).filter(function (value) {
+        // 過濾空白數值
+        return value.trim() !== "";
+      });
+      const selectedTargets = getSelectedValues("targetDropdownMenu");
+      const selectedGroups = getSelectedValues("groupDropdownMenu");
+      const selectedPlatforms = getSelectedValues("platformDropdownMenu");
+      const selectedCycles = getSelectedValues("cycleDropdownMenu");
+      const selectedPhase = getSelectedValues("phaseDropdownMenu");
+      const selectedStatus = getSelectedValues("statusDropdownMenu");
+      const status_indexof = selectedStatus.indexOf('Machine_arrive_mail')
+      var machine_arrive_mail = []
+      if (status_indexof != -1) {
+        machine_arrive_mail = [selectedStatus[status_indexof]]
+        selectedStatus.splice(status_indexof, 1)
+      }
+      console.log(selectedStatus, machine_arrive_mail);
+
+      const search = { target: selectedTargets, group: selectedGroups, cycle: selectedCycles, platform: selectedPlatforms, SN: Serial_Number, phase: selectedPhase, status: selectedStatus, machine_arrive_mail: machine_arrive_mail };
+      console.log(search);
+      axios.post('/polls/api/filtersearch/', search)
+        .then(function (response) {
+          if (response.data.finaldata) {
+            const data = response.data.finaldata.map(item => {
+              return {
+                ...item,
+                'update_time': formatTimeForFrontend(item['update_time']),
+              };
+            });
+            sessionStorage.setItem("currentPage", "1"); //刷新成第1頁
+            selectedData = []; //清空數據暫存
+            getDataAndUpdateTable(data, 20);
+          }
+          else if (response.data.error) {
+            alert(response.data.error);
+          }
+        })
+        .catch(error => {
+          alert("取得資料失敗 請聯繫管理員");
+          console.error(error);
+        })
+        .finally(() => {
+        });
+      closePopup();
+    });
+
+    //清除篩選
+    document.getElementById("clear").addEventListener("click", function () {
+      const targetDropdownMenu = document.getElementById("targetDropdownMenu");
+      targetDropdownMenu.innerHTML = "";
+      selectedTargets.clear();
+      const groupDropdownMenu = document.getElementById("groupDropdownMenu");
+      groupDropdownMenu.innerHTML = "";
+      selectedGroups.clear();
+      const cycleDropdownMenu = document.getElementById("cycleDropdownMenu");
+      cycleDropdownMenu.innerHTML = "";
+      selectedCycles.clear();
+      const platformDropdownMenu = document.getElementById("platformDropdownMenu");
+      platformDropdownMenu.innerHTML = "";
+      selectedPlatforms.clear();
+      const phaseDropdownMenu = document.getElementById("phaseDropdownMenu");
+      phaseDropdownMenu.innerHTML = "";
+      selectedPhase.clear();
+      const statusDropdownMenu = document.getElementById("statusDropdownMenu");
+      statusDropdownMenu.innerHTML = "";
+      selectedStatus.clear();
+      selectvaluediv();
+    })
+
+    const filterBtn = document.getElementById("filterBtn");
+    const popupContainer = document.getElementById("popupContainer");
+    const popupContent = document.getElementById("popupContent");
+    const overlay = document.getElementById("overlay");
+    let isPopupOpen = false;
+    let lendcheckpopup = false;
+    const applyFilterBtn = document.getElementById("applyFilterBtn");
+    const tableContainer = document.getElementById("tableContainer");
+    const lendContainer = document.getElementById("lendContainer");
+    const lendContent = document.getElementById("lendContent");
+    const lendcheckcontainer = document.getElementById("lendcheckcontainer");
+    const mailproxycontainer = document.getElementById("mailproxycontainer");
+    const mailproxycontent = document.getElementById("mailproxycontent");
+
+    filterBtn.addEventListener("click", function () {
+      if (!isPopupOpen) {
+        popupContainer.style.opacity = "1";
+        popupContainer.style.pointerEvents = "auto";
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+        isPopupOpen = true;
+      } else {
+        closePopup();
+      }
+    });
+    const confirmButton = document.getElementById('confirmButton');
+    const IURselect = document.getElementById('IURselect');
+
+    confirmButton.addEventListener('click', function () {
+      if (selectedData.length > 0) {
+        if (IURselect.value === 'lend') {
+          const status = selectedData.some((data) => {    //.some 是當一個條件達成true時會立即返還  //.every是當所有條件達成時會才返還
+            if (data.status != 'Keep On') {                //selectData的status不能改 所以用改之前的也可
+              console.log("機台狀態必須為Keep On")
+              return true;
+            }
+            return false;
+          });
+          if (status) {
+            alert("機台狀態必須為Keep On")
+            closePopup();
+            return;
+          }
+
+          checklendtable(selectedData);
+          if (!isPopupOpen) {
+            lendContainer.style.opacity = "1";
+            lendContainer.style.pointerEvents = "auto";
+            overlay.style.opacity = "1";
+            overlay.style.pointerEvents = "auto";
+            isPopupOpen = true;
+          } else {
+            closePopup();
+          }
+        } else if (IURselect.value === 'return') {
+          const status = selectedData.some((data) => {    //.some 是當一個條件達成true時會立即返還  //.every是當所有條件達成時會才返還
+            if (data.status != 'Rent') {                //selectData的status不能改 所以用改之前的也可
+              console.log("機台狀態必須為Rent")
+              return true;
+            }
+            return false;
+          });
+          if (status) {
+            alert("機台狀態必須為Rent")
+            closePopup();
+            return;
+          }
+          const selectedDataJSON = JSON.stringify(selectedData);
+          console.log(selectedDataJSON);
+          //const nextUrl = this.dataset.url + "?jsonData=" + encodeURIComponent(selectedDataJSON);
+          const nextUrl = `/polls/returnuut?jsonData=${selectedDataJSON}`;
+          window.location.href = nextUrl;
+          //const nextUrl = this.dataset.url + "?jsonData=" + encodeURIComponent(selectedDataJSON);
+        } else if (IURselect.value === 'newplatform') {
+          /*
+          const status = selectedData.some((data) => {    //.some 是當一個條件達成true時會立即返還  //.every是當所有條件達成時會才返還
+            if (data.status != 'New incoming') {                //selectData的status不能改 所以用改之前的也可
+              console.log("機台狀態必須為New incoming")
+              return true;
+            }
+            return false;
+          });
+          if (status) {
+            alert("機台狀態必須為New incoming")
+            closePopup();
+            return;
+          }
+          */
+          const selectedDataJSON = JSON.stringify(selectedData);
+          const nextUrl = `/polls/check_newplatform?jsonData=${selectedDataJSON}`;
+          window.location.href = nextUrl;
+        }
+        else if (IURselect.value === 'change') {
+          const selectedDataJSON = JSON.stringify(selectedData);
+          console.log(selectedDataJSON);
+          const nextUrl = `/polls/batchprocessing?jsonData=${selectedDataJSON}`;
+          window.location.href = nextUrl;
+          newplatform
+        } else if (IURselect.value === 'delete') {
+          const selectedDataJSON = JSON.stringify(selectedData);
+          console.log(selectedDataJSON);
+          const nextUrl = `/polls/api/delete?jsonData=${selectedDataJSON}`;
+          window.location.href = nextUrl;
+        } else if (IURselect.value === 'scrap') {
+          const status = selectedData.some((data) => {    //.some 是當一個條件達成true時會立即返還  //.every是當所有條件達成時會才返還
+            if (data.status != 'Keep On') {                //selectData的status不能改 所以用改之前的也可
+              console.log("機台狀態必須為Keep On")
+              return true;
+            }
+            return false;
+          });
+          if (status) {
+            alert("機台狀態必須為Keep On")
+            closePopup();
+            return;
+          }
+          const selectedDataJSON = JSON.stringify(selectedData);
+          console.log(selectedDataJSON);
+          const nextUrl = `/polls/scrapped?jsonData=${selectedDataJSON}`;
+          window.location.href = nextUrl;
+        }
+      } else alert('請勾選歸還機台')
+    });
+    document.getElementById("lendconfirm").addEventListener("click", function () {
+      const selectElement = document.getElementById("lendDropdown");
+      const selectedValue = selectElement.options[selectElement.selectedIndex].value;
+      console.log("Selected value:", selectedValue);
+      if (!lendcheckpopup) {
+        lendcheckcontainer.style.opacity = "1";
+        lendcheckcontainer.style.pointerEvents = "auto";
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+        lendContainer.style.opacity = "0.85";
+        lendcheckpopup = true;
+      }
+      else
+        closePopup()
+    })
+    document.getElementById("lendcheckconfirm").addEventListener("click", function () {
+      showLoading();
+      const selectElement = document.getElementById("lendDropdown");
+      const selectedValue = selectElement.options[selectElement.selectedIndex].value;
+      const lendpersonnel = { "lendpersonnel": selectedValue };
+      const updatedselectedData = selectedData.map(obj => ({ ...obj, ...lendpersonnel }));
+      const finaldata = {
+        'finaldata': updatedselectedData,
+        'purpose': inputBox.value,
+        'cc_mail': document.getElementById('cc_mail_input').querySelector('input').value
+      }
+      console.log(finaldata);
+      axios.post('/polls/lendplatform/', finaldata)
+        .then(function (response) {
+          console.log(response.status)
+          if (response.data.redirect_url) {
+            window.location.replace(response.data.redirect_url);
+          }
+          else if (response.data.error) {
+            console.log(response.data.error);
+            alert(response.data.error);
+          }
+        })
+        .catch(error => {
+          alert("儲存失敗");
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+      closePopup();
+    })
+
+    document.getElementById("proxybutton").addEventListener("click", function () {
+      if (!isPopupOpen) {
+        mailproxycontainer.style.opacity = "1";
+        mailproxycontainer.style.pointerEvents = "auto";
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+        isPopupOpen = true;
+      } else {
+        closePopup();
+      }
+    });
+    document.getElementById("send-button").addEventListener("click", function () {
+      var requestData = {
+        'subject': document.getElementById('subject').value,
+        'to': document.getElementById('to').value,
+        'cc': document.getElementById('cc').value,
+        'body': document.getElementById('body').value
+      };
+      closePopup();
+      console.log(requestData);
+      axios.post('/polls/proxy_mail/', requestData)
+        .then(function (response) {
+          alert("send successful");
+          window.location.href = response.data.redirect_url;
+        })
+        .catch(function (error) {
+          // 登出失敗，顯示錯誤消息或執行其他處理
+          console.error(error);
+        });
+    });
+
+    document.getElementById("lendcheckcancel").addEventListener("click", closePopup);
+    document.getElementById("lendcancel").addEventListener("click", closePopup);
+    overlay.addEventListener("click", closePopup);
+    function closePopup() {
+      popupContainer.style.opacity = "0";
+      popupContainer.style.pointerEvents = "none";
+      lendContainer.style.opacity = "0";
+      lendContainer.style.pointerEvents = "none";
+      lendcheckcontainer.style.opacity = "0";
+      lendcheckcontainer.style.pointerEvents = "none";
+      mailproxycontainer.style.opacity = "0";
+      mailproxycontainer.style.pointerEvents = "none";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      isPopupOpen = false;
+      lendcheckpopup = false;
+    }
+
+
+    //大篩選中的SN
+    var deleteSearchBtnCount = 0; //SN框數量ID編號
+    addSearchInput();//初始搜索框
+    var Serial_Number = []; // 用來儲存搜索框的文字
+    function addSearchInput() {
+      var searchInputsContainer = document.getElementById("searchInputsContainer");
+
+      var searchInputWrapper = document.createElement("div");
+      searchInputWrapper.classList.add("search-input");
+
+      var searchInput = document.createElement("input");
+      searchInput.type = "text";
+      searchInput.placeholder = "Serial Number";
+      searchInputWrapper.appendChild(searchInput);
+      var deleteSearchBtn = document.createElement("button");
+      deleteSearchBtn.innerHTML = "<i class='fas fa-times'></i>";
+      //創建唯一ID
+      var deleteSearchBtnId = "deleteSearchBtn_" + deleteSearchBtnCount;
+      deleteSearchBtn.setAttribute("id", deleteSearchBtnId);
+      deleteSearchBtnCount++;
+
+      searchInputWrapper.appendChild(deleteSearchBtn);
+      deleteSearchBtn.addEventListener("click", function () {
+        if (searchInputsContainer.children.length > 1) {
+          searchInputsContainer.removeChild(searchInputWrapper);
+        }
+        else {
+          searchInput.value = "";
+        }
+      });
+      document.getElementById("clear").addEventListener("click", function () {  //刪除輸入框
+        var allSearchInputWrappers = document.querySelectorAll(".search-input");
+
+        allSearchInputWrappers.forEach(function (inputWrapper) {
+          var btnId = inputWrapper.querySelector("button").getAttribute("id");
+          if (btnId === "deleteSearchBtn_0") {
+            var searchInput = inputWrapper.querySelector("input");
+            searchInput.value = ""; // 清空输入框的值
+          } else {
+            searchInputsContainer.removeChild(inputWrapper);
+          }
+        });
+      });
+      searchInputsContainer.appendChild(searchInputWrapper);
+      searchInput.focus();//游標放置
+      searchInput.addEventListener("keyup", function (event) {
+        if (event.key === "Enter") {
+          addSearchInput();
+        }
+      });
+    }
+
+    //cycle platform控制
+    document.getElementById("targetDropdownMenu").addEventListener("change", function () {
+      const cycleDropdownMenu = document.getElementById("cycleDropdownMenu");
+      cycleDropdownMenu.innerHTML = "";
+      selectedCycles.clear();
+      const platformDropdownMenu = document.getElementById("platformDropdownMenu");
+      platformDropdownMenu.innerHTML = "";
+      selectedPlatforms.clear();
+      selectvaluediv();
+    });
+
+    document.getElementById("groupDropdownMenu").addEventListener("change", function () {
+      const cycleDropdownMenu = document.getElementById("cycleDropdownMenu");
+      cycleDropdownMenu.innerHTML = "";
+      selectedCycles.clear();
+      const platformDropdownMenu = document.getElementById("platformDropdownMenu");
+      platformDropdownMenu.innerHTML = "";
+      selectedPlatforms.clear();
+      selectvaluediv();
+    });
+    document.getElementById("cycleDropdownMenu").addEventListener("change", function () {
+      const platformDropdownMenu = document.getElementById("platformDropdownMenu");
+      platformDropdownMenu.innerHTML = "";
+      selectedPlatforms.clear();
+      selectvaluediv();
+    });
+
+
+    //target select        
+    const selectedTargets = new Set(); //保存選項內容
+    let targetOptions = []; // 保存選項框
+    document.getElementById("targetDropdown").addEventListener("click", function () {
+      console.log("Dropdown clicked!");
+      const token = document.cookie;
+      console.log(token);
+      axios.get('/polls/api/target/')
+        .then(function (response) {
+          const targetDropdownMenu = document.querySelector(".dropdown-menu"); //指定匹配CSS元素(dropdown-menu) 下拉選單創建
+          targetDropdownMenu.innerHTML = ""; // 清空下拉選單
+          const targets = response.data.target.reduce((acc, item) => { if (item.target !== "") { acc.push(item.target); } return acc; }, []); //acc累加器 只要值為空就不放入
+          //不需要這句  因為已經有唯一性了
+          // const uniqueTargets = Array.from(new Set(targets));
+          // 創建搜尋框
+          const searchInput = document.createElement("input");
+          searchInput.type = "text";
+          searchInput.placeholder = "Search"; //搜尋框文字
+          targetDropdownMenu.appendChild(searchInput); // 搜尋框加入下拉選單中
+
+          // 監聽搜索框
+          searchInput.addEventListener("input", function () {
+            const searchText = searchInput.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+
+            const checkboxes = targetDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCheckbox)"); //所有格子不含全選格
+            //搜尋框文字排序
+            const options = Array.from(checkboxes).map(checkbox => checkbox.parentNode);
+            options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+              const aText = a.textContent.toLowerCase();
+              const bText = b.textContent.toLowerCase();
+              return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+            });     //a文字是否為searchText字串開頭
+            options.forEach(option => {   //options選項放入選單中
+              targetDropdownMenu.appendChild(option);
+            });
+
+            checkboxes.forEach(checkbox => {
+              const label = checkbox.nextElementSibling; //  checkbox 元素的下一个兄弟元素，即 label 元素
+              const targetText = label.textContent.toLowerCase(); // 將文本轉換成小寫
+
+              // 排序完將沒有包含在搜尋框的關鍵字隱藏
+              if (targetText.includes(searchText)) {
+                checkbox.parentNode.style.display = "block";
+              } else {
+                checkbox.parentNode.style.display = "none";
+              }
+            });
+            targetOptions = Array.from(targetDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCheckbox):checked"));
+          });
+          // 創建全選框 checkbox勾選的意思
+          const selectAllCheckbox = document.createElement("input");
+          selectAllCheckbox.type = "checkbox";
+          selectAllCheckbox.id = "selectAllCheckbox";
+          const selectAllLabel = document.createElement("label");
+          selectAllLabel.htmlFor = "selectAllCheckbox";
+          selectAllLabel.textContent = "Select all";
+
+          //全選加入下拉式選單
+          const selectAllOption = document.createElement("li");
+          //li關聯checkbox
+
+          selectAllOption.addEventListener("click", function () { selectall() });
+          selectAllLabel.addEventListener("click", function () { selectall() });
+
+          function selectall() {
+            const checkboxes = targetDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCheckbox)");
+            const areAllChecked = checkboxes.length === selectedTargets.size;
+            checkboxes.forEach(checkbox => {
+              if (checkbox.parentNode.style.display !== "none") {
+                checkbox.checked = !areAllChecked;
+                if (checkbox.checked) {
+                  selectedTargets.add(checkbox.value);
+                } else {
+                  selectedTargets.delete(checkbox.value);
+                }
+              }
+            });
+            selectAllCheckbox.checked = !areAllChecked;
+            selectvaluediv();
+          }
+
+          selectAllOption.appendChild(selectAllCheckbox);
+          selectAllOption.appendChild(selectAllLabel);
+          targetDropdownMenu.appendChild(selectAllOption);
+
+          // 創建選項加入下拉式選單
+          targets.forEach(target => {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            const label = document.createElement("label");
+
+            checkbox.type = "checkbox";
+            checkbox.id = `checkbox_${target}`;
+            checkbox.value = target;
+            label.textContent = target;
+            label.htmlFor = `checkbox_${target}`;
+            //label.setAttribute("for", `checkbox_${target}`);   // 關聯label與checkbox
+
+            const checkboxes = targetDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCheckbox)");
+            selectAllCheckbox.checked = checkboxes.length === selectedTargets.size
+
+            if (selectedTargets.has(target) || targetOptions.some(option => option.value === target)) { //重新創建  刷新後自動打勾
+              checkbox.checked = true;              //後面這句適用於none選項  但現在無用
+            }
+            checkbox.addEventListener("click", function () { option() });
+            label.addEventListener("click", function () { option() });
+            li.addEventListener("click", function () { option() });
+            function option() {
+              checkbox.checked = !checkbox.checked;
+              if (checkbox.checked) {
+                selectedTargets.add(checkbox.value);
+              } else {
+                selectedTargets.delete(checkbox.value);
+              }
+              const checkboxes = targetDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCheckbox)");
+              selectAllCheckbox.checked = checkboxes.length === selectedTargets.size;
+              selectvaluediv();
+            }
+            li.addEventListener("mouseenter", function () {
+              li.classList.add("hovered");
+            });
+
+            li.addEventListener("mouseleave", function () {
+              li.classList.remove("hovered");
+            });
+            li.appendChild(checkbox); //li 列表
+            li.appendChild(label); //label標籤元素
+            targetDropdownMenu.appendChild(li);
+          });
+          const checkboxes = targetDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCheckbox)");
+          selectAllCheckbox.checked = checkboxes.length === selectedTargets.size; //判斷全選選項的勾選
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    });
+
+    //group select
+    const selectedGroups = new Set();
+    let groupOptions = [];
+    document.getElementById("groupDropdown").addEventListener("click", function () {
+      axios.get('/polls/api/group/')
+        .then(function (response) {
+          const groupDropdownMenu = document.getElementById("groupDropdownMenu");
+          groupDropdownMenu.innerHTML = "";
+          //const groups = data.map(item => item.group.trim() !== "" ? item.group : "none"); //trim()清除空格
+          const groups = response.data.group.reduce((acc, item) => { if (item.group !== "") { acc.push(item.group); } return acc; }, []); //acc累加器 只要值為空就不放入
+          //唯一性
+          //const uniqueGroups = Array.from(new Set(groups));
+          // 創建搜索框
+          const searchInput = document.createElement("input");
+          searchInput.type = "text";
+          searchInput.placeholder = "Search";
+          groupDropdownMenu.appendChild(searchInput); // 搜索框加入下拉選單
+
+          // 監聽搜索框輸入
+          searchInput.addEventListener("input", function () {
+            const searchText = searchInput.value.toLowerCase(); // 搜索框輸入轉小寫
+
+            const checkboxes = groupDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllGroupsCheckbox)");
+            //搜尋框文字排序
+            const options = Array.from(checkboxes).map(checkbox => checkbox.parentNode);
+            options.sort((a, b) => {
+              const aText = a.textContent.toLowerCase();
+              const bText = b.textContent.toLowerCase();
+              return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+            });
+            options.forEach(option => {
+              groupDropdownMenu.appendChild(option);
+            });
+
+            checkboxes.forEach(checkbox => {
+              const label = checkbox.nextElementSibling; // 獲取label元素
+              const groupText = label.textContent.toLowerCase();
+
+              if (groupText.includes(searchText)) {
+                checkbox.parentNode.style.display = "block";
+              } else {
+                checkbox.parentNode.style.display = "none";
+              }
+            });
+            groupOptions = Array.from(groupDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllGroupsCheckbox):checked"));
+          });
+          // 創建全選選項
+          const selectAllGroupsCheckbox = document.createElement("input");
+          selectAllGroupsCheckbox.type = "checkbox";
+          selectAllGroupsCheckbox.id = "selectAllGroupsCheckbox";
+          const selectAllGroupsLabel = document.createElement("label");
+          selectAllGroupsLabel.htmlFor = "selectAllGroupsCheckbox";
+          selectAllGroupsLabel.textContent = "Select all";
+
+          const selectAllGroupsOption = document.createElement("li");
+
+          selectAllGroupsOption.addEventListener("click", function () { selectall() });
+          selectAllGroupsLabel.addEventListener("click", function () { selectall() });
+          function selectall() {
+            const checkboxes = groupDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllGroupsCheckbox)");
+            const areAllChecked = checkboxes.length === selectedGroups.size;
+            checkboxes.forEach(checkbox => {
+              if (checkbox.parentNode.style.display != "none") {
+                checkbox.checked = !areAllChecked;
+                if (checkbox.checked) {
+                  selectedGroups.add(checkbox.value);
+                } else {
+                  selectedGroups.delete(checkbox.value);
+                }
+              }
+            });
+            selectAllGroupsCheckbox.checked = !areAllChecked;
+            selectvaluediv();
+          };
+          selectAllGroupsOption.appendChild(selectAllGroupsCheckbox);
+          selectAllGroupsOption.appendChild(selectAllGroupsLabel);
+          groupDropdownMenu.appendChild(selectAllGroupsOption);
+
+
+          groups.forEach(group => {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            const label = document.createElement("label");
+
+            checkbox.type = "checkbox";
+            checkbox.id = `checkbox_${group}`;
+            checkbox.value = group;
+            label.textContent = group;
+            label.htmlFor = `checkbox_${group}`;
+
+            if (selectedGroups.has(group) || groupOptions.some(option => option.value === group)) {
+              checkbox.checked = true;
+            }
+            checkbox.addEventListener("click", function () { option() });
+            label.addEventListener("click", function () { option() });
+            li.addEventListener("click", function () { option() });
+            function option() {
+              checkbox.checked = !checkbox.checked;
+              if (checkbox.checked) {
+                selectedGroups.add(checkbox.value);
+              } else {
+                selectedGroups.delete(checkbox.value);
+              }
+              const checkboxes = groupDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllGroupsCheckbox)");
+              selectAllGroupsCheckbox.checked = checkboxes.length === selectedGroups.size;
+              selectvaluediv();
+            };
+            li.addEventListener("mouseenter", function () {
+              li.classList.add("hovered");
+            });
+
+            li.addEventListener("mouseleave", function () {
+              li.classList.remove("hovered");
+            });
+            li.appendChild(checkbox);
+            li.appendChild(label);
+            groupDropdownMenu.appendChild(li);
+          });
+
+          const checkboxes = groupDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllGroupsCheckbox)");
+          selectAllGroupsCheckbox.checked = checkboxes.length === selectedGroups.size;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    });
+    // cycle
+    const selectedCycles = new Set();
+    let cycleOptions = [];
+    document.getElementById("cycleDropdown").addEventListener("click", function () {
+      function getSelectedValues(containerId) {
+        const selectedValues = Array.from(document.querySelectorAll(`#${containerId} input[type='checkbox']:checked`))
+          .map(checkbox => {
+            const value = checkbox.value;
+            if (value === "on") {
+              return null;
+            }
+            if (value === "none") {
+              return "";
+            }
+            return value;
+          })
+          .filter(value => value !== null);
+        return selectedValues;
+      }
+      const selectedTargets = getSelectedValues("targetDropdownMenu");
+      const selectedGroups = getSelectedValues("groupDropdownMenu");
+      const search = JSON.stringify({ target: selectedTargets, group: selectedGroups });
+      console.log(search);
+      fetch(`/polls/api/cycle?search=${search}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          const cycleDropdownMenu = document.getElementById("cycleDropdownMenu");
+          cycleDropdownMenu.innerHTML = "";
+          const cycles = data.map(item => item.cycle.trim() !== "" ? item.cycle : "none");
+
+          const searchInput = document.createElement("input");
+          searchInput.type = "text";
+          searchInput.placeholder = "Search";
+          cycleDropdownMenu.appendChild(searchInput);
+
+
+          searchInput.addEventListener("input", function () {
+            const searchText = searchInput.value.toLowerCase();
+
+            const checkboxes = cycleDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCyclesCheckbox)");
+
+            const options = Array.from(checkboxes).map(checkbox => checkbox.parentNode);
+            options.sort((a, b) => {
+              const aText = a.textContent.toLowerCase();
+              const bText = b.textContent.toLowerCase();
+              return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+            });
+            options.forEach(option => {
+              cycleDropdownMenu.appendChild(option);
+            });
+
+            checkboxes.forEach(checkbox => {
+              const label = checkbox.nextElementSibling; //  checkbox元素的下一個兄弟元素，即 label 元素
+              const cycleText = label.textContent.toLowerCase();
+
+              if (cycleText.includes(searchText)) {
+                checkbox.parentNode.style.display = "block";
+              } else {
+                checkbox.parentNode.style.display = "none";
+              }
+            });
+            cycleOptions = Array.from(cycleDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCyclesCheckbox):checked"));
+          });
+          // 創建全選
+          const selectAllCyclesCheckbox = document.createElement("input");
+          selectAllCyclesCheckbox.type = "checkbox";
+          selectAllCyclesCheckbox.id = "selectAllCyclesCheckbox";
+          const selectAllCyclesLabel = document.createElement("label");
+          selectAllCyclesLabel.htmlFor = "selectAllCyclesCheckbox";
+          selectAllCyclesLabel.textContent = "Select all";
+
+          const selectAllCyclesOption = document.createElement("li");
+          selectAllCyclesOption.addEventListener("click", function () { selectall() });
+          selectAllCyclesLabel.addEventListener("click", function () { selectall() });
+
+          function selectall() {
+            const checkboxes = cycleDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCyclesCheckbox)");
+            const areAllChecked = checkboxes.length === selectedCycles.size;
+            checkboxes.forEach(checkbox => {
+              if (checkbox.parentNode.style.display != "none") {
+                checkbox.checked = !areAllChecked;
+                if (checkbox.checked) {
+                  selectedCycles.add(checkbox.value);
+                } else {
+                  selectedCycles.delete(checkbox.value);
+                }
+              }
+            });
+            selectAllCyclesCheckbox.checked = !areAllChecked;
+            selectvaluediv();
+          };
+          selectAllCyclesOption.appendChild(selectAllCyclesCheckbox);
+          selectAllCyclesOption.appendChild(selectAllCyclesLabel);
+          cycleDropdownMenu.appendChild(selectAllCyclesOption);
+
+          cycles.forEach(cycle => {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            const label = document.createElement("label");
+
+            checkbox.type = "checkbox";
+            checkbox.id = `checkbox_${cycle}`;
+            checkbox.value = cycle;
+            label.textContent = cycle;
+            label.htmlFor = `checkbox_${cycle}`;
+
+            const checkboxes = cycleDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCyclesCheckbox)");
+            selectAllCyclesCheckbox.checked = checkboxes.length === selectedCycles.size;
+
+            if (selectedCycles.has(cycle) || cycleOptions.some(option => option.value === cycle)) {
+              checkbox.checked = true;
+            }
+            checkbox.addEventListener("click", function () { option() });
+            label.addEventListener("click", function () { option() });
+            li.addEventListener("click", function () { option() });
+            function option() {
+              checkbox.checked = !checkbox.checked;
+              if (checkbox.checked) {
+                selectedCycles.add(checkbox.value);
+              } else {
+                selectedCycles.delete(checkbox.value);
+              }
+              const checkboxes = cycleDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCyclesCheckbox)");
+              selectAllCyclesCheckbox.checked = checkboxes.length === selectedCycles.size;
+              selectvaluediv();
+            };
+            li.addEventListener("mouseenter", function () {
+              li.classList.add("hovered");
+            });
+
+            li.addEventListener("mouseleave", function () {
+              li.classList.remove("hovered");
+            });
+            li.appendChild(checkbox);
+            li.appendChild(label);
+            cycleDropdownMenu.appendChild(li);
+          });
+          const checkboxes = cycleDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllCyclesCheckbox)");
+          selectAllCyclesCheckbox.checked = checkboxes.length === selectedCycles.size;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    });
+
+    // platform 
+    const selectedPlatforms = new Set();
+    let platformOptions = [];
+    document.getElementById("platformDropdown").addEventListener("click", function () {
+      function getSelectedValues(containerId) {
+        const selectedValues = Array.from(document.querySelectorAll(`#${containerId} input[type='checkbox']:checked`))
+          .map(checkbox => {
+            const value = checkbox.value;
+            if (value === "on") {
+              return null;
+            }
+            if (value === "none") {
+              return "";
+            }
+            return value;
+          })
+          .filter(value => value !== null);
+        return selectedValues;
+      }
+      const selectedTargets = getSelectedValues("targetDropdownMenu");
+      const selectedGroups = getSelectedValues("groupDropdownMenu");
+      const selectedCycles = getSelectedValues("cycleDropdownMenu");
+      const search = JSON.stringify({ target: selectedTargets, group: selectedGroups, cycle: selectedCycles });
+      fetch(`/polls/api/platform?search=${search}`)
+        .then(response => response.json())
+        .then(data => {
+          const platformDropdownMenu = document.getElementById("platformDropdownMenu");
+          platformDropdownMenu.innerHTML = "";
+          const platforms = data.map(item => item.platform.trim() !== "" ? item.platform : "none");
+
+          const searchInput = document.createElement("input");
+          searchInput.type = "text";
+          searchInput.placeholder = "Search";
+          platformDropdownMenu.appendChild(searchInput); // 搜索框加入下拉選單
+
+          // 監聽搜索框
+          searchInput.addEventListener("input", function () {
+            const searchText = searchInput.value.toLowerCase();
+
+            const checkboxes = platformDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPlatformsCheckbox)");
+            //搜尋框文字排序
+            const options = Array.from(checkboxes).map(checkbox => checkbox.parentNode);
+            options.sort((a, b) => {
+              const aText = a.textContent.toLowerCase();
+              const bText = b.textContent.toLowerCase();
+              return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+            });
+            options.forEach(option => {
+              platformDropdownMenu.appendChild(option);
+            });
+            checkboxes.forEach(checkbox => {
+              const label = checkbox.nextElementSibling; // 取得 label 元素
+              const platformText = label.textContent.toLowerCase();
+
+              if (platformText.includes(searchText)) {
+                checkbox.parentNode.style.display = "block";
+              } else {
+                checkbox.parentNode.style.display = "none";
+              }
+            });
+            platformOptions = Array.from(platformDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPlatformsCheckbox):checked"));
+          });
+
+          const selectAllPlatformsCheckbox = document.createElement("input");
+          selectAllPlatformsCheckbox.type = "checkbox";
+          selectAllPlatformsCheckbox.id = "selectAllPlatformsCheckbox";
+          const selectAllPlatformsLabel = document.createElement("label");
+          selectAllPlatformsLabel.htmlFor = "selectAllPlatformsCheckbox";
+          selectAllPlatformsLabel.textContent = "Select all";
+
+          const selectAllPlatformsOption = document.createElement("li");
+          selectAllPlatformsOption.addEventListener("click", function () { selectall() });
+          selectAllPlatformsLabel.addEventListener("click", function () { selectall() });
+
+          function selectall() {
+            const checkboxes = platformDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPlatformsCheckbox)");
+            const areAllChecked = checkboxes.length === selectedPlatforms.size;
+            checkboxes.forEach(checkbox => {
+              if (checkbox.parentNode.style.display !== "none") {
+                checkbox.checked = !areAllChecked;
+                if (checkbox.checked) {
+                  selectedPlatforms.add(checkbox.value);
+                } else {
+                  selectedPlatforms.delete(checkbox.value);
+                }
+              }
+            });
+            selectAllPlatformsCheckbox.checked = !areAllChecked;
+            selectvaluediv();
+          };
+          selectAllPlatformsOption.appendChild(selectAllPlatformsCheckbox);
+          selectAllPlatformsOption.appendChild(selectAllPlatformsLabel);
+          platformDropdownMenu.appendChild(selectAllPlatformsOption);
+
+
+          platforms.forEach(platform => {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            const label = document.createElement("label");
+
+            checkbox.type = "checkbox";
+            checkbox.id = `checkbox_${platform}`;
+            checkbox.value = platform;
+            label.textContent = platform;
+            label.htmlFor = `checkbox_${platform}`;
+
+            const checkboxes = platformDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPlatformsCheckbox)");
+            selectAllPlatformsCheckbox.checked = checkboxes.length === selectedPlatforms.size;
+
+            if (selectedPlatforms.has(platform) || platformOptions.some(option => option.value === platform)) {
+              checkbox.checked = true;
+            }
+            checkbox.addEventListener("click", function () { option() });
+            label.addEventListener("click", function () { option() });
+            li.addEventListener("click", function () { option() });
+
+            function option() {
+              checkbox.checked = !checkbox.checked;
+              if (checkbox.checked) {
+                selectedPlatforms.add(checkbox.value);
+              } else {
+                selectedPlatforms.delete(checkbox.value);
+              }
+              const checkboxes = platformDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPlatformsCheckbox)");
+              selectAllPlatformsCheckbox.checked = checkboxes.length === selectedPlatforms.size;
+              selectvaluediv();
+            };
+            li.addEventListener("mouseenter", function () {
+              li.classList.add("hovered");
+            });
+
+            li.addEventListener("mouseleave", function () {
+              li.classList.remove("hovered");
+            });
+            li.appendChild(checkbox);
+            li.appendChild(label);
+            platformDropdownMenu.appendChild(li);
+          });
+          const checkboxes = platformDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPlatformsCheckbox)");
+          selectAllPlatformsCheckbox.checked = checkboxes.length === selectedPlatforms.size;
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    });
+
+    const selectedPhase = new Set();
+    let phaseOptions = [];
+    document.getElementById("phaseDropdown").addEventListener("click", function () {
+      axios.get("/polls/api/phase/")
+        .then(function (response) {
+          console.log(response.data);
+          console.log(response.data.phase);
+          const phaseDropdownMenu = document.getElementById("phaseDropdownMenu");
+          phaseDropdownMenu.innerHTML = "";
+          const phases = response.data.phase.reduce((acc, item) => { if (item.phase !== "") { acc.push(item.phase); } return acc; }, []); //acc累加器 只取phase不為空的值
+          const searchInput = document.createElement("input");
+          searchInput.type = "text";
+          searchInput.placeholder = "Search";
+          phaseDropdownMenu.appendChild(searchInput);
+
+          // 監聽搜尋框變化
+          searchInput.addEventListener("input", function () {
+            const searchText = searchInput.value.toLowerCase(); // 轉換成小寫
+            console.log(searchText)
+            console.log("+++++++")
+            const checkboxes = phaseDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPhaseCheckbox)");
+            const options = Array.from(checkboxes).map(checkbox => checkbox.parentNode);
+            options.sort((a, b) => {
+              const aText = a.textContent.toLowerCase();
+              const bText = b.textContent.toLowerCase();
+              return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+            });
+            options.forEach(option => {
+              phaseDropdownMenu.appendChild(option);
+            });
+            checkboxes.forEach(checkbox => {
+              const label = checkbox.nextElementSibling; //下一個同層級的元素 即label元素
+              const phasetext = label.textContent.toLowerCase(); //轉換成小寫
+
+              if (phasetext.includes(searchText)) {
+                checkbox.parentNode.style.display = "block";
+              } else {
+                checkbox.parentNode.style.display = "none";
+              }
+            });
+            phaseOptions = Array.from(phaseDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPhaseCheckbox):checked"));
+          })
+
+          // 全選選項
+          const selectAllPhasesCheckbox = document.createElement("input");
+          selectAllPhasesCheckbox.type = "checkbox";
+          selectAllPhasesCheckbox.id = "selectAllPhaseCheckbox";
+          const selectAllPhasesLabel = document.createElement("label");
+          selectAllPhasesLabel.htmlFor = "selectAllPhaseCheckbox";
+          selectAllPhasesLabel.textContent = "select all";
+
+          const selectAllPhasesOption = document.createElement("li");
+          //監聽全選選項變化
+          selectAllPhasesOption.addEventListener("click", function () { selectall() });
+          selectAllPhasesLabel.addEventListener("click", function () { selectall() });
+          function selectall() {
+            const checkboxes = phaseDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPhaseCheckbox)");
+            const areAllChecked = checkboxes.length === selectedPhase.size;
+            checkboxes.forEach(checkbox => {
+              if (checkbox.parentNode.style.display != "none") {
+                checkbox.checked = !areAllChecked;
+                if (checkbox.checked) {
+                  selectedPhase.add(checkbox.value);
+                } else {
+                  selectedPhase.delete(checkbox.value);
+                }
+              }
+            });
+            selectAllCheckbox.checked = !areAllChecked;
+            selectvaluediv();
+          };
+          selectAllPhasesOption.appendChild(selectAllPhasesCheckbox);
+          selectAllPhasesOption.appendChild(selectAllPhasesLabel);
+          phaseDropdownMenu.appendChild(selectAllPhasesOption);
+
+          //創建群組選項並加入下拉式選單
+          phases.forEach(phase => {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            const label = document.createElement("label");
+
+            checkbox.type = "checkbox";
+            checkbox.id = `checkbox_${phase}`;
+            checkbox.value = phase;
+            label.textContent = phase;
+            label.htmlFor = `checkbox_${phase}`;
+
+            const checkboxes = phaseDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPhaseCheckbox)");
+            selectAllPhasesCheckbox.checked = checkboxes.length === selectedPhase.size;
+            if (selectedPhase.has(phase) || phaseOptions.some(option => option.value === phase)) {
+              checkbox.checked = true;
+            }
+            checkbox.addEventListener("click", function () { option() });
+            label.addEventListener("click", function () { option() });
+            li.addEventListener("click", function () { option() });
+            function option() {
+              checkbox.checked = !checkbox.checked;
+              if (checkbox.checked) {
+                selectedPhase.add(checkbox.value);
+              } else {
+                selectedPhase.delete(checkbox.value);
+              }
+              const checkboxes = phaseDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPhaseCheckbox)");
+              selectAllPhasesCheckbox.checked = checkboxes.length === selectedPhase.size;
+              selectvaluediv();
+            };
+            li.appendChild(checkbox);
+            li.appendChild(label);
+            phaseDropdownMenu.appendChild(li);
+          });
+          const checkboxes = phaseDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllPhaseCheckbox)");
+          selectAllPhasesCheckbox.checked = checkboxes.length === selectedPhase.size;
+        })
+        .catch(error => {
+          alert("請求失敗 請聯繫管理員");
+          console.error(error);
+        })
+        .finally(() => {
+        });
+    });
+    // status
+    const selectedStatus = new Set();
+    let statusOptions = [];
+    document.getElementById("statusDropdown").addEventListener("click", function () {
+      axios.get("/polls/api/status/") // 更換為相應的 API 路徑
+        .then(function (response) {
+          console.log(response.data);
+          console.log(response.data.status); // 更換成相應的屬性名稱
+          const statusDropdownMenu = document.getElementById("statusDropdownMenu"); // 更換為相應的元素ID
+          statusDropdownMenu.innerHTML = "";
+          const statuses = response.data.status.reduce((acc, item) => {
+            if (item.status !== "") {
+              acc.push(item.status);
+            }
+            return acc;
+          }, []);
+          statuses.push("Machine_arrive_mail")
+          const searchInput = document.createElement("input");
+          searchInput.type = "text";
+          searchInput.placeholder = "Search";
+          statusDropdownMenu.appendChild(searchInput);
+
+          // 監聽搜尋框變化
+          searchInput.addEventListener("input", function () {
+            const searchText = searchInput.value.toLowerCase();
+            const checkboxes = statusDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllStatusCheckbox)");
+            const options = Array.from(checkboxes).map(check => check.parentNode);
+            options.sort((a, b) => {
+              const aText = a.textContent.toLowerCase();
+              const bText = b.textContent.toLowerCase();
+              return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+            });
+            options.forEach(option => {
+              statusDropdownMenu.appendChild(option);
+            });
+            checkboxes.forEach(checkbox => {
+              const label = checkbox.nextElementSibling;
+              const statustext = label.textContent.toLowerCase();
+
+              if (statustext.includes(searchText)) {
+                checkbox.parentNode.style.display = "block";
+              } else {
+                checkbox.parentNode.style.display = "none";
+              }
+            });
+            statusOptions = Array.from(statusDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllStatusCheckbox):checked"));
+          });
+
+          const selectAllStatusesCheckbox = document.createElement("input");
+          selectAllStatusesCheckbox.type = "checkbox";
+          selectAllStatusesCheckbox.id = "selectAllStatusCheckbox";
+          const selectAllStatusesLabel = document.createElement("label");
+          selectAllStatusesLabel.htmlFor = "selectAllStatusCheckbox";
+          selectAllStatusesLabel.textContent = "select all";
+
+          const selectAllStatusOption = document.createElement("li");
+
+          selectAllStatusOption.addEventListener("click", function () { selectall() });
+          selectAllStatusesLabel.addEventListener("click", function () { selectall() });
+
+          function selectall() {
+            const checkboxes = statusDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllStatusCheckbox)");
+            const areAllChecked = checkboxes.length === selectedStatus.size;
+            checkboxes.forEach(checkbox => {
+              if (checkbox.parentNode.style.display !== "none") {
+                checkbox.checked = !areAllChecked;
+                if (checkbox.checked) {
+                  selectedStatus.add(checkbox.value);
+                } else {
+                  selectedStatus.delete(checkbox.value);
+                }
+              }
+            });
+            selectAllStatusesCheckbox.checked = !areAllChecked;
+            selectvaluediv();
+          };
+          selectAllStatusOption.appendChild(selectAllStatusesCheckbox);
+          selectAllStatusOption.appendChild(selectAllStatusesLabel);
+          statusDropdownMenu.appendChild(selectAllStatusOption);
+
+          statuses.forEach(status => {
+            const li = document.createElement("li");
+            const checkbox = document.createElement("input");
+            const label = document.createElement("label");
+
+            checkbox.type = "checkbox";
+            checkbox.id = `checkbox_${status}`;
+            checkbox.value = status;
+            label.textContent = status;
+            label.htmlFor = `checkbox_${status}`;
+
+            const checkboxes = statusDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllStatusCheckbox)");
+            selectAllStatusesCheckbox.checked = checkboxes.length === selectedStatus.size;
+
+            if (selectedStatus.has(status) || statusOptions.some(option => option.value === status)) {
+              checkbox.checked = true;
+            }
+            checkbox.addEventListener("click", function () { option() });
+            label.addEventListener("click", function () { option() });
+            li.addEventListener("click", function () { option() });
+            function option() {
+              checkbox.checked = !checkbox.checked;
+              if (checkbox.checked) {
+                selectedStatus.add(checkbox.value);
+              } else {
+                selectedStatus.delete(checkbox.value);
+              }
+              const checkboxes = statusDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllStatusCheckbox)");
+              selectAllStatusesCheckbox.checked = checkboxes.length === selectedStatus.size;
+              selectvaluediv();
+            };
+            li.addEventListener("mouseenter", function () {
+              li.classList.add("hovered");
+            });
+
+            li.addEventListener("mouseleave", function () {
+              li.classList.remove("hovered");
+            });
+            li.appendChild(checkbox);
+            li.appendChild(label);
+            statusDropdownMenu.appendChild(li);
+          });
+          const checkboxes = statusDropdownMenu.querySelectorAll("input[type='checkbox']:not(#selectAllStatusCheckbox)");
+          selectAllStatusesCheckbox.checked = checkboxes.length === selectedStatus.size;
+        })
+        .catch(error => {
+          alert("請求失敗 請聯繫管理員");
+          console.error(error);
+        })
+        .finally(() => {
+        });
+    });
+
+
+
+
+
+
+  </script>
+
+  <script>
+    //獲取30筆表單資料
+    document.getElementById("getDataBtn").addEventListener("click", function () {
+      fetch("/polls/search")
+        .then(response => response.json())
+        .then(data => {
+
+          console.log(data);
+          const tableContainer = document.getElementById("tableContainer");
+
+
+          const table = document.createElement("table");
+          table.classList.add("table");
+
+
+          const thead = document.createElement("thead");
+          const headerRow = document.createElement("tr");
+          const headers = Object.keys(data[0]);
+
+          headers.forEach(header => {
+            const th = document.createElement("th");
+            th.textContent = header;
+            headerRow.appendChild(th);
+          });
+
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          // 创建表格主体
+          const tbody = document.createElement("tbody");
+          data.forEach(rowData => {
+            const row = document.createElement("tr");
+            headers.forEach(header => {
+              const cell = document.createElement("td");
+              cell.textContent = rowData[header];
+              row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+          });
+
+          table.appendChild(tbody);
+
+          // 清空容器并添加表格
+          tableContainer.innerHTML = "";
+          tableContainer.appendChild(table);
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    });
+
+
+    let selectedData = [];
+    // 抓數據刷新表格
+    function getDataAndUpdateTable(data, pageSize) {
+      const tableContainer = document.getElementById("tableContainer");
+      const tableHeaderContainer = document.getElementById("tableHeaderContainer");
+      const tableDataContainer = document.getElementById("tableDataContainer");
+      // 清空表單
+      tableContainer.innerHTML = "";
+      tableHeaderContainer.innerHTML = "";
+      tableDataContainer.innerHTML = "";
+      // 創建表
+      const table = document.createElement("table");
+      table.classList.add("table");
+
+      // 創建表頭
+      const thead = document.createElement("thead"); //表頭
+      const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+      // 創建全選框
+      const selectAllCheckbox = document.createElement("input");
+      selectAllCheckbox.type = "checkbox";
+      selectAllCheckbox.id = "selectAllCheckbox";
+      selectAllCheckbox.addEventListener("change", function () {
+        const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']"); //每個列的框框
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = selectAllCheckbox.checked; // 將每個 checkbox 的狀態調整為全選框一致
+
+          const rowData = getRowDataFromCheckbox(checkbox);
+
+          if (checkbox.checked) {
+            const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (!isDuplicate) {
+              selectedData.push(rowData); // 將選中的資料加入 selectedData 陣列
+            }
+          } else {
+            const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (index > -1) {
+              selectedData.splice(index, 1); // 從 selectedData 陣列中移除取消選中的資料
+            }
+          }
+        });
+        console.log(selectedData);
+      });
+
+      const selectAllTh = document.createElement("th");
+      selectAllTh.appendChild(selectAllCheckbox);
+      headerRow.appendChild(selectAllTh);
+      const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'borrower', 'status', 'position', 'remark', 'update_time'];
+
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        if (['phase', 'target', 'status'].includes(header)) {
+          th.classList.add("sn_cell");
+          th.addEventListener("click", function () {
+            if (!isPopupOpen) {
+              get_title_link(header);
+              title_filter.style.opacity = "1";
+              title_filter.style.pointerEvents = "auto";
+              title_filter_hide.style.opacity = "1";
+              title_filter_hide.style.pointerEvents = "auto";
+              filteropen = true;
+            } else {
+              filter_closePopup();
+            }
+          });
+
+        }
+
+        headerRow.appendChild(th);
+      });
+
+      thead.appendChild(headerRow);
+      tableHeaderContainer.appendChild(thead);
+      table.appendChild(tableHeaderContainer);
+      // 創建表格主體
+      const tbody = document.createElement("tbody");
+      data.forEach(rowData => {
+        const row = document.createElement("tr");
+
+        // 創建行複選框
+        const rowCheckbox = document.createElement("input");
+        rowCheckbox.type = "checkbox";
+        rowCheckbox.dataset.row = "checkbox";
+        rowCheckbox.addEventListener("change", function () {
+          rowData = getRowDataFromCheckbox(rowCheckbox);
+          if (rowCheckbox.checked) {  //check就是選中
+            const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (!isDuplicate) {
+              selectedData.push(rowData); // 將選中的資料加入 selectedData 陣列
+            }
+          } else {
+            const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(rowData));  //findindex查找方法  如果(index > -1)則表示有找到
+            if (index > -1) {
+              selectedData.splice(index, 1);  //這裡的1為索引到的1個  splice移除
+            }
+          }
+          const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+          const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+          selectAllCheckbox.checked = allChecked;
+          console.log(selectedData);
+        });
+
+        const selectRowTd = document.createElement("td");
+        selectRowTd.appendChild(rowCheckbox);
+        row.appendChild(selectRowTd);
+
+        headers.forEach(header => {
+          const cell = document.createElement("td");
+          const cellContent = document.createElement("span"); //分配每一格
+          cellContent.textContent = rowData[header];
+          if (header == "sn") {
+            cellContent.classList.add("sn_cell");
+            cellContent.addEventListener("click", function () {
+              SN_data = JSON.stringify({ 'jsonData': rowData[header] });
+              const dataURL = `/polls/machine_record_page?jsonData=${SN_data}`;
+              window.open(dataURL, "_blank");
+            });
+          }
+          cell.appendChild(cellContent);
+          row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+      });
+      tableDataContainer.appendChild(tbody);
+      table.appendChild(tableDataContainer);
+      tableContainer.appendChild(table);
+    }
+    function getRowDataFromCheckbox(checkbox) {
+      const row = checkbox.closest('tr');
+      const rowData = {};
+      const cells = row.querySelectorAll('td');
+      const headers = Array.from(tableContainer.querySelectorAll('th')).map(th => th.textContent);
+
+      cells.forEach((cell, index) => {
+        const header = headers[index];
+        const value = cell.textContent.trim(); // 移除前後空白
+        if (header !== '') { // 排除空白的鍵名
+          rowData[header] = value;
+        }
+      });
+      return rowData;
+    }
+
+    function get_title_link(title) {
+      console.log(tableContainer);
+      title_filter_content.innerHTML = "";
+      if (title == 'phase') {
+        axios.get('/polls/api/phase/')
+          .then(function (response) {
+            const data = response.data.phase
+            response.data.phase.forEach(data => {
+              const span = document.createElement("span");
+              span.classList.add("filter_cell");
+              span.textContent = data.phase;
+              span.addEventListener("click", function () {
+                console.log(span.textContent);
+                if (span.classList.contains("filter_cell")) {
+                  span.classList.remove("filter_cell");
+                  span.classList.add("filter_cell_clicked");
+                  filter_content_showhide(span.textContent, 2, true)
+                }
+                else if (span.classList.contains("filter_cell_clicked")) {
+                  span.classList.add("filter_cell");
+                  span.classList.remove("filter_cell_clicked");
+                  filter_content_showhide(span.textContent, 2, false)
+                }
+              })
+              title_filter_content.appendChild(span);
+            })
+          })
+          .catch(error => {
+            alert("取得資料失敗 請聯繫管理員");
+            console.error(error);
+          })
+          .finally(() => {
+          });
+      }
+      else if (title == 'target') {
+        title_filter_target.style.opacity = "1";
+        title_filter_target.style.pointerEvents = "auto";
+        title_filter_hide.style.opacity = "1";
+        title_filter_hide.style.pointerEvents = "auto";
+        filteropen = true;
+      }
+      else if (title == 'status') {
+        title_filter_status.style.opacity = "1";
+        title_filter_status.style.pointerEvents = "auto";
+        title_filter_hide.style.opacity = "1";
+        title_filter_hide.style.pointerEvents = "auto";
+        filteropen = true;
+      }
+    }
+
+
+
+
+    const title_filter_hide = document.getElementById("title_filter_hide");
+    const title_filter = document.getElementById("title_filter");
+    const title_filter_content = document.getElementById("title_filter_content");
+    let filteropen = false;
+    /*
+    filterBtn.addEventListener("click", function () {
+      if (!isPopupOpen) {
+        title_filter.style.opacity = "1";
+        title_filter.style.pointerEvents = "auto";
+        title_filter_hide.style.opacity = "1";
+        title_filter_hide.style.pointerEvents = "auto";
+        filteropen = true;
+      } else {
+        filter_closePopup();
+      }
+    });*/
+
+    title_filter_hide.addEventListener("click", filter_closePopup);
+    function filter_closePopup() {
+      title_filter.style.opacity = "0";
+      title_filter.style.pointerEvents = "none";
+      title_filter_target.style.opacity = "0";
+      title_filter_target.style.pointerEvents = "none";
+      title_filter_status.style.opacity = "0";
+      title_filter_status.style.pointerEvents = "none";
+      title_filter_hide.style.opacity = "0";
+      title_filter_hide.style.pointerEvents = "none";
+      filteropen = false;
+    }
+
+    function filter_content(container, source_data, title, column){
+      source_data.forEach(data => {
+          const span = document.createElement("span");
+          span.classList.add("filter_cell");
+          span.textContent = data[title];
+          span.addEventListener("click", function () {
+            console.log(span.textContent);
+            if (span.classList.contains("filter_cell")) {
+              span.classList.remove("filter_cell");
+              span.classList.add("filter_cell_clicked");
+              filter_content_showhide(span.textContent, column, true)
+              const otherspan_all = container.querySelectorAll("span");
+              otherspan_all.forEach(otherspan => {
+                if (otherspan.textContent !== span.textContent && otherspan.classList.contains("filter_cell_clicked")) {
+                  otherspan.classList.remove("filter_cell_clicked");
+                  otherspan.classList.add("filter_cell");
+                  filter_content_showhide(span.textContent, column, false)
+                }
+              })
+            }
+            else if (span.classList.contains("filter_cell_clicked")) {
+              span.classList.add("filter_cell");
+              span.classList.remove("filter_cell_clicked");
+              filter_content_showhide(span.textContent, column, false)
+            }
+          })
+          container.appendChild(span);
+        })
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function filter_content_showhide(textContent, index_td, show_hide) {
+      const tr = tableContainer.querySelector("#tableDataContainer").querySelectorAll("tr");
+      tr.forEach(tr => {
+        td = tr.querySelectorAll("td");
+        td.forEach((td, index) => {
+          if (index == index_td) {
+            if (show_hide) {
+              if (td.textContent != textContent) {
+                tr.style.display = "none";
+              }
+            }
+            else {
+              if (td.textContent == textContent) {
+                tr.style.display = "table-row";
+              }
+            }
+          }
+        })
+      })
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //lend給別人
+    let inputBox;
+    function checklendtable(lenddata) {
+      const lendtable = document.getElementById("lendtable");
+      // 清空表單
+      lendtable.innerHTML = "";
+      // 創建表
+      const table = document.createElement("table");
+      table.classList.add("lendtable");
+      // 創建表頭
+      const thead = document.createElement("thead"); //表頭
+      const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+      const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'borrower', 'status', 'position', 'remark', 'update_time'];
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      const tbody = document.createElement("tbody");
+
+      lenddata.forEach((data, indexdata) => {
+        const row = document.createElement("tr");
+        headers.forEach(header => {
+          const cell = document.createElement("td");
+          const cellContent = document.createElement("span"); //分配每一格
+          cellContent.textContent = data[header];
+          cell.appendChild(cellContent);
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      })
+      table.appendChild(tbody);
+      lendtable.appendChild(table);
+      const cc_mail_input = document.getElementById("cc_mail_input");
+      const cc_mail_label = document.createElement("label");
+      cc_mail_label.textContent = "cc_mail:";
+      cc_mail_input.appendChild(cc_mail_label);
+      axios.get('/polls/user_info_mail/')
+        .then(function (response) {
+          const options = response.data.users_email
+          select_input(options, cc_mail_input);
+        })
+        .catch(error => {
+          alert("user_mail顯示失敗");
+          console.error(error);
+        })
+        .finally(() => {
+        });
+
+
+      //purpose
+      const inputContainer = document.createElement("div");
+      inputContainer.style.width = "200px";
+      inputContainer.style.height = "120px";
+
+      inputBox = document.createElement("textarea");
+      inputBox.placeholder = "Enter purpose";
+      inputBox.style.width = "100%"; // 為容器寬度百分比
+      inputBox.style.height = "100%";
+      inputContainer.appendChild(inputBox);
+
+      const titleLabel = document.createElement("label");
+      titleLabel.textContent = "purpose : ";
+
+      const container = document.createElement("div");
+      container.appendChild(titleLabel);
+      container.appendChild(inputContainer);
+      lendtable.appendChild(container);
+    }
+
+    // 取得借出人員資料
+    function getLendPersonnel() {
+      return fetch("/polls/lendpersonnel") // 請替換為您的後端 API 端點
+        .then(response => response.json())
+        .then(data => data);
+    }
+    const lendinput = document.getElementById("lendinput");
+    const select = document.createElement("select");
+    select.id = "lendDropdown"; // 設置 select 元素的 ID
+    select.classList.add("select2"); // 添加 select2 的 CSS class
+    getLendPersonnel().then(personnel => {
+      personnel.forEach(person => {
+        const option = document.createElement("option");
+        option.textContent = person.user_name;
+        select.appendChild(option);
+      });
+      $(document).ready(function () {
+        $('#lendDropdown').select2({
+          dropdownParent: '#lendContainer'
+        });
+      });
+    })
+    lendinput.appendChild(select);
+
+
+
+
+    function select_input(option, container) {
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.classList.add("input");
+      td.appendChild(input);
+      input.addEventListener("focus", function () {
+        const dataDisplay = document.createElement("div");
+        dataDisplay.classList.add("data-display");
+        dataDisplay.style.position = 'absolute';
+        dataDisplay.style.left = '0';
+        dataDisplay.style.top = '100%';
+        dataDisplay.style.width = 'fit-content';
+        dataDisplay.style.maxHeight = '200px';
+        dataDisplay.style.overflow = 'auto';
+        dataDisplay.style.backgroundColor = '#ffffff';
+        dataDisplay.style.border = '1px solid #cccccc';
+        dataDisplay.style.padding = '5px';
+        dataDisplay.style.zIndex = '2';
+
+        option.forEach(optionData => {
+          const option = document.createElement("span");
+          option.textContent = optionData;
+          option.addEventListener("click", function () {
+            event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+            //groupcombine(optionData, indexrow);
+            //spaninput();
+          });
+          dataDisplay.appendChild(option);
+
+          input.addEventListener("input", function () {
+            const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+            const options = Array.from(dataDisplay.children);
+            options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+              const aText = a.textContent.toLowerCase();
+              const bText = b.textContent.toLowerCase();
+              return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+            });
+            // 清空下方顯示框的內容
+            dataDisplay.innerHTML = "";
+            options.forEach(option => {   //options選項放入選單中
+              dataDisplay.appendChild(option);
+              if (option.textContent.toLowerCase().includes(searchText)) {
+                option.style.display = "block";
+              } else {
+                option.style.display = "none";
+              }
+            });
+          });
+          option.addEventListener("click", function () {
+            input.value = optionData;
+            dataDisplay.remove();
+            console.log(input.value)
+          });
+
+        });
+        td.appendChild(dataDisplay);
+        document.addEventListener('click', function (event) {
+          if (dataDisplay && !td.contains(event.target)) {
+            dataDisplay.remove();
+          }
+        });
+      });
+
+      container.appendChild(td);
+      console.log(td)
+      //CSS
+      td.style.position = 'relative';
+      const dataDisplay = document.querySelectorAll('.data-display');
+      console.log(dataDisplay)
+      dataDisplay.forEach((dataDisplay) => {
+        dataDisplay.style.position = 'absolute';
+        dataDisplay.style.left = '0';
+        dataDisplay.style.top = '100%';
+        dataDisplay.style.width = 'fit-content';
+        dataDisplay.style.maxHeight = '200px';
+        dataDisplay.style.overflow = 'auto';
+        dataDisplay.style.backgroundColor = '#ffffff';
+        dataDisplay.style.border = '1px solid #cccccc';
+        dataDisplay.style.padding = '5px';
+        dataDisplay.style.zIndex = '2';
+      });
+      const spanElements = document.querySelectorAll('.data-display span');
+      spanElements.forEach((span) => {
+        span.style.display = 'block';
+        span.style.padding = '5px';
+        span.style.cursor = 'pointer';
+      });
+      spanElements.forEach((span) => {
+        span.addEventListener('mouseover', () => {
+          span.style.backgroundColor = '#f2f2f2';
+        });
+
+        span.addEventListener('mouseout', () => {
+          span.style.backgroundColor = '';
+        });
+      });
+    }
+
+    function formatTimeForFrontend(inputTime) {
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const date = new Date(inputTime);
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      const formattedTime = date.toLocaleString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
+      return `${month} ${day}, ${year}, ${formattedTime}`;
+    }
+
+    document.getElementById('logout').addEventListener('click', function () {
+      axios.get('/user/logout/')
+        .then(function (response) {
+          window.location.href = response.data.redirect_url;
+        })
+        .catch(function (error) {
+          alert('登出失敗 請聯繫管理員');
+          console.error(error);
+        });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </script>
+
+
+  <script src="{%static 'polls/js/bootstrap.bundle.min.js'%}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+
+</body>
+
+</html>
+{% load static %}

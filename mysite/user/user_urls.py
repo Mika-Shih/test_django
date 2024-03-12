@@ -1,0 +1,15 @@
+from django.urls import path, include
+
+from . import user_views
+app_name = "user"
+urlpatterns = [
+    path("login/", user_views.login, name="login"),
+    path("verify/", user_views.verify, name="verify"),
+    path("create_account/", user_views.create_account, name="create_account"),
+    path("sign_up/", user_views.sign_up, name="sign_up"),
+    path('activate/<str:activation_code>/', user_views.activate_account, name='activate_account'),
+    path("logout/", user_views.logout, name="logout"),
+    path("view_token/", user_views.view_token, name="view_token"),
+    path("mail/", include("mail.mail_urls")),
+    path("log/", include("log.log_urls")),
+]

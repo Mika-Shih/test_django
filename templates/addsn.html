@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<head>
+    <style>
+        .table {
+            border-collapse: collapse;
+            /*邊框緊密排列*/
+            width: 12%;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-size: 14px;
+        }
+
+        .table td {
+            font-size: 12px;
+        }
+
+        .table th:first-child {
+            width: 10px;
+            /* 固定第一行寬度的數值 */
+        }
+
+
+        /*彈跳視窗*/
+        .newplatformcontainer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .newplatformcheckcontainer {
+            position: fixed;
+            top: 85%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .newplatformcontent,
+        .newplatformcheckcontent {
+         
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .overlay {
+            /* 反灰效果的樣式 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* 調整反灰的透明度 */
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /*輸入框對齊*/
+        .input-container {
+            width: 200px;
+            margin-bottom: 10px;
+        }
+
+        .input-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-container input[type="text"] {
+            display: block;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            /* 調整框模型 */
+        }
+
+
+        #tableContainer {
+            max-height: 800px;
+            /* 调整为适合的高度 */
+            overflow-y: auto;
+        }
+
+        .headers {
+            position: sticky;
+            left: 0;
+            top: 0;
+            background-color: white;
+            /* 可選 為了使列在最上方顯示 */
+        }
+
+        /*輸入框對齊*/
+        .input-container {
+            width: 200px;
+            margin-bottom: 10px;
+
+        }
+
+        .input-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-container input[type="text"],
+        .input-container select {
+            display: block;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            /* 調整框模型 */
+        }
+
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <button id="delete">批量刪除</button>
+    <button id="addplatform">新增機台</button>
+    <div id="newplatformContainer" class="newplatformcontainer">
+        <div id="newplatformContent" class="newplatformcontent">
+            <h2>新增機台條件</h2>
+            <br>
+            <div id="input-form" class="input-container"></div>
+            <br>
+
+            <br>
+            <button id="platformconfirm">確定</button>
+            <button id="platformcancel">取消</button>
+        </div>
+    </div>
+    <div id="newplatformcheckContainer" class="newplatformcheckcontainer">
+        <div id="newplatformcheckContent" class="newplatformcheckcontent">
+            <h3>確定新增以上內容?</h3>
+            <button id="platformcheckconfirm">確定</button>
+            <button id="platformcheckcancel">取消</button>
+        </div>
+    </div>
+    <div id="overlay" class="overlay"></div><!--反灰-->
+    <div id="tableContainer"></div>
+    <div id="paginationContainer"></div>
+    <button id="add">新增</button>
+
+    <script>
+        const phaseoption = ['OOC', 'SI', 'PV1', 'PVT', 'TLD', 'MV', 'SI-2', 'PVT2', 'SI-3', 'PV2', 'SI1-B1', 'PV', 'PV3', 'PVR', 'PV-2', 'Bellagio 1.0', 'Type-C', 'Type-A', 'SI-1', ''];
+        const targetoption = ['NB', 'DOCK', 'DT', 'AIO', ''];
+        const groupoption = ['COMMERICAL', 'CONSUMER', ''];
+
+        const addplatform = document.getElementById("addplatform");
+        const newplatformcheckContainer = document.getElementById("newplatformcheckContainer");
+        const newplatformContainer = document.getElementById("newplatformContainer");
+        const newplatformContent = document.getElementById("newplatformContent");
+        const overlay = document.getElementById("overlay");
+        let isPopupOpen = false;
+        let isplatformcheck = false;
+
+        addplatform.addEventListener("click", function () {
+            if (!isPopupOpen) {
+                newplatformContainer.style.opacity = "1";
+                newplatformContainer.style.pointerEvents = "auto";
+                overlay.style.opacity = "1";
+                overlay.style.pointerEvents = "auto";
+                isPopupOpen = true;
+            } else {
+                closePopup();
+            }
+        });
+
+        document.getElementById("platformconfirm").addEventListener("click", function () {
+            var platform = document.getElementById('platform').value;
+            if (platform === "") {
+                document.getElementById("platformError").innerHTML = "Platform欄位不可為空";
+                return;
+            }
+            if (!isplatformcheck) {
+                newplatformcheckContainer.style.opacity = "1";
+                newplatformcheckContainer.style.pointerEvents = "auto";
+                overlay.style.opacity = "1";
+                overlay.style.pointerEvents = "auto";
+                newplatformContainer.style.opacity = "0.6"; // 設定第一層彈跳視窗反灰
+                newplatformContainer.style.pointerEvents = "none";
+                isplatformcheck = true;
+            }
+        });
+        //新增機台資料送出
+        document.getElementById("platformcheckconfirm").addEventListener("click", function () {
+            var platform = document.getElementById('platform').value;
+            var target = document.getElementById('target').value;
+            var group = document.getElementById('group').value;
+            var cycle = document.getElementById('cycle').value;
+            const addplatform = JSON.stringify({ platform: platform.trim(), target: target.trim(), group: group.trim(), cycle: cycle.trim() });
+            fetch(`/polls/api/addplatformonly?addplatform=${addplatform}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert("完成");
+                })
+                .catch(error => {
+                    alert("儲存失敗");
+                    console.error(error);
+                });
+            closePopup();
+        });
+        document.getElementById("platformcheckcancel").addEventListener("click",  function () {
+            if (isPopupOpen) {
+                newplatformContainer.style.opacity = "1";
+                newplatformContainer.style.pointerEvents = "auto";
+                overlay.style.opacity = "1";
+                overlay.style.pointerEvents = "auto";
+                newplatformcheckContainer.style.opacity = "0";
+                newplatformcheckContainer.style.pointerEvents = "none";
+                isPopupOpen = true;
+                isplatformcheck = false;
+            } else {
+                closePopup();
+            }
+        });
+        document.getElementById("platformcancel").addEventListener("click", closePopup);
+        overlay.addEventListener("click", closePopup);
+    
+        function closePopup() {
+            newplatformContainer.style.opacity = "0";
+            newplatformContainer.style.pointerEvents = "none";
+            newplatformcheckContainer.style.opacity = "0";
+            newplatformcheckContainer.style.pointerEvents = "none";
+            overlay.style.opacity = "0";
+            overlay.style.pointerEvents = "none";
+            isPopupOpen = false;
+            isplatformcheck = false;
+        }
+
+        
+        //var jsonData = '{{ json_data|safe }}';
+        var jsonData = JSON.parse('{{ json_data|safe }}');   //.parse json_data轉為Javascript  //|safe 為Django安全傳遞資料  
+        console.log(jsonData);
+        getDataAndUpdateTable(jsonData, 20);
+        let selectedData = [];
+        // 抓數據刷新表格
+        function getDataAndUpdateTable(data) {
+            const tableContainer = document.getElementById("tableContainer");
+            tableContainer.innerHTML = "";
+            const table = document.createElement("table");
+            table.classList.add("table");
+            const thead = document.createElement("thead"); //表頭
+            const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+            // 創建全選框
+            const selectAllCheckbox = document.createElement("input");
+            selectAllCheckbox.type = "checkbox";
+            selectAllCheckbox.id = "selectAllCheckbox";
+            selectAllCheckbox.addEventListener("change", function () {
+                const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']"); //每個列的框框
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked; // 將每個 checkbox 的狀態調整為全選框一致
+                    checkbox.addEventListener("change", function () { });
+                    const rowData = getRowDataFromCheckbox(checkbox);
+
+                    if (checkbox.checked) {
+                        const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData));
+                        if (!isDuplicate) {
+                            selectedData.push(rowData); // 將選中的資料加入 selectedData 陣列
+                        }
+                    } else {
+                        const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(rowData));
+                        if (index > -1) {
+                            selectedData.splice(index, 1); // 從 selectedData 陣列中移除取消選中的資料
+                        }
+                    }
+                });
+                console.log(selectedData);
+            });
+
+            const selectAllTh = document.createElement("th");
+            selectAllTh.appendChild(selectAllCheckbox);
+            headerRow.appendChild(selectAllTh);
+
+            const headers = Object.keys(data[0]);
+
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            // 創建表格主體
+            const tbody = document.createElement("tbody");
+
+            // 創建新增列
+            addSearchInput();
+            function addSearchInput() {
+                const addRow = document.createElement("tr");
+                const checkboxCell = document.createElement("td");
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.dataset.row = "checkbox";
+                checkboxCell.appendChild(checkbox);
+                addRow.appendChild(checkboxCell);
+                checkbox.addEventListener("click", function () {
+                    const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+                    let trueCount = 0;
+                    checkboxes.forEach(checkbox => {
+                        if (checkbox.checked) { //假設true
+                            trueCount++;
+                        }  //計數器加一
+                    });
+                    selectAllCheckbox.checked = checkboxes.length === trueCount;
+                });
+
+                const cell = document.createElement("td");
+                const input = document.createElement("input");
+                input.type = 'text';
+                input.style.width = "90%"; // 調整輸入框寬度
+                cell.appendChild(input);
+                addRow.appendChild(cell);
+                input.addEventListener("keyup", function (event) {
+                    if (event.key === "Enter") {
+                        addSearchInput();
+                        setTimeout(() => {  //延遲定時器指令
+                            const newRow = tbody.lastElementChild;  //最新的子元素
+                            const firstInput = newRow.querySelector("input[type='text']");
+                            firstInput.focus();
+                        });
+                    }
+                });
+                var deleteSearchBtn = document.createElement("button");
+                deleteSearchBtn.innerHTML = "<i class='fas fa-times'></i>";
+                addRow.appendChild(deleteSearchBtn);
+                deleteSearchBtn.addEventListener("click", function () {
+                    if (tbody.children.length > 1) {
+                        addRow.remove();
+                    }
+                    else {
+                        input.value = "";
+                    }
+                    const newRow = tbody.lastElementChild;  //最新的子元素
+                    const firstInput = newRow.querySelector("input[type='text']");
+                    firstInput.focus();
+
+                });
+                tbody.appendChild(addRow);
+            };
+
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+        };
+
+        // 從複選框中獲取對應的資料
+        function getRowDataFromCheckbox(checkbox) {
+            const row = checkbox.closest('tr');
+            const rowData = {};
+            const cells = row.querySelectorAll('td');
+            const headers = Array.from(tableContainer.querySelectorAll('th')).map(th => th.textContent);
+
+            cells.forEach((cell, index) => {
+                const header = headers[index];
+                const value = cell.textContent.trim(); // 移除前後空白
+                if (header !== '') { // 排除空白的鍵名
+                    rowData[header] = value;
+                }
+            });
+            return rowData;
+        }
+        //刪除按鈕
+        document.getElementById("delete").addEventListener("click", function () {
+            const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const row = checkbox.parentNode.parentNode;
+                    const currentcheckboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+                    if (currentcheckboxes.length > 1) {
+                        row.remove();
+                    }
+                    else {
+                        const input = tableContainer.querySelectorAll("input[type='text']");
+                        input.forEach(input => {
+                            input.value = "";
+                            checkbox.checked = false;
+                        });
+                    }
+                }
+            });
+            const selectAllCheckbox = document.getElementById("selectAllCheckbox");
+            selectAllCheckbox.checked = false;
+        });
+        //新增按鈕
+        document.getElementById("add").addEventListener("click", function () {
+            Serial_Number = Array.from(tableContainer.querySelectorAll("input[type='text']")).map(function (input) {
+                return input.value.trim();
+            }).filter(function (value) {
+                // 過濾空白數值
+                return value.trim() !== "";
+            });
+            const selectedDataJSON = JSON.stringify(Serial_Number);
+            const nextUrl = `/polls/api/add?snData=${selectedDataJSON}`;
+            window.location.href = nextUrl;
+        });
+    </script>
+    <script>
+        //新增機台
+        const inputForm = document.getElementById("input-form");
+
+        const inputElements = [
+            { label: "Platform", id: "platform", name: "platform" },
+            // { label: "Phase", id: "phase", name: "phase", selectOptions: phaseoption },
+            { label: "Target", id: "target", name: "target", selectOptions: targetoption },
+            { label: "Group", id: "group", name: "group", selectOptions: groupoption },
+            { label: "Cycle", id: "cycle", name: "cycle" },
+
+        ];
+
+        inputElements.forEach((input) => {
+            const div = document.createElement("div");
+            const label = document.createElement("label");
+            const inputElement = input.selectOptions   // 判別式
+                ? document.createElement("select")
+                : document.createElement("input");
+
+            label.setAttribute("for", input.id);
+            label.textContent = input.label;
+
+            if (input.selectOptions) {
+                input.selectOptions.forEach((optionText) => {
+                    const option = document.createElement("option");
+                    option.textContent = optionText;
+                    inputElement.appendChild(option);
+                });
+            }
+
+            inputElement.setAttribute("type", "text");
+            inputElement.setAttribute("id", input.id);
+            inputElement.setAttribute("name", input.name);
+            if (inputElement.id == 'platform') {
+                var platformErrorDiv = document.createElement("div");
+                platformErrorDiv.setAttribute("id", "platformError");
+                platformErrorDiv.classList.add("error");
+                div.appendChild(platformErrorDiv);
+            }
+            div.appendChild(label);
+            div.appendChild(inputElement);
+
+            inputForm.appendChild(div);
+        });
+    </script>
+    
+</body>
+
+</html>

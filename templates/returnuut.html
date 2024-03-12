@@ -1,0 +1,720 @@
+{% load static %}
+<!DOCTYPE html>
+
+<head>
+    <style>
+        .table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+            position: relative;
+            /*相對位置布局 沒有則下拉框會不見*/
+        }
+
+        .td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            font-size: 12px;
+            height: 20px;
+            /*text-align: left;
+            position: relative;
+            相對位置布局 沒有則下拉框會不見*/
+        }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-size: 14px;
+        }
+
+        .table td {
+            font-size: 12px;
+            /*文字大小*/
+        }
+
+        /*
+        .table tr td:nth-child(1) {
+        width: calc(2%);
+        }
+        */
+
+        table tr td:nth-child(1) {
+            width: calc(12%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(2) {
+            width: calc(4%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(3) {
+            width: calc(4%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(4) {
+            width: calc(10%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(5) {
+            box-sizing: border-box;
+            width: calc(6%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(6) {
+            box-sizing: border-box;
+            width: calc(4%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(7) {
+            box-sizing: border-box;
+            width: calc(8%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(8) {
+            box-sizing: border-box;
+            width: calc(8%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(9) {
+            box-sizing: border-box;
+            width: calc(5%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(10) {
+            box-sizing: border-box;
+            width: calc(4%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(11) {
+            box-sizing: border-box;
+            width: calc(4%);
+            height: 20px;
+        }
+
+
+        table tr td:nth-child(12) {
+            box-sizing: border-box;
+            width: calc(15%);
+            height: 20px;
+        }
+
+        .input[type="text"] {
+            width: 75%;
+        }
+
+        .data-display {
+            position: absolute;
+            left: 0;
+            top: 100%;
+            /* 將 top 設置為 100% 以覆蓋容器 */
+            width: fit-content;
+            /* 設置 */
+            width: 150%;
+            max-height: 200px;
+            overflow: auto;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            padding: 5px;
+            z-index: 2;
+            /* 設置較高的 z-index 值 */
+        }
+
+        .data-display span {
+            display: block;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .data-display span:hover {
+            background-color: #f2f2f2;
+            /* 鼠標懸停時的背景顏色 */
+        }
+
+        .returncontainer {
+            position: fixed;
+            /*固定位置*/
+            top: 50%;
+            left: 40%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .returncontent {
+            width: 100%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .overlay {
+            /* 反灰效果的樣式 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* 調整反灰的透明度 */
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .form-container {
+            width: 300px;
+            margin-left: 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-container textarea {
+            width: 100%;
+            height: 120px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        .options {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+    <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<body>
+    <div id="tableContainer"></div>
+    <div id="returncontainer" class="returncontainer">
+        <div id="returncontent" class="returncontent">
+            <h2>確定填完position以及remark 並歸還機台?</h2> <!-- 2級標籤-->
+            <button id="confirm">確定</button>
+            <button id="cancel">取消</button>
+        </div>
+    </div>
+    <div id="overlay" class="overlay"></div><!--反灰-->
+    <div id="cc_mail"></div>
+    <div id="message" class="form-container"></div>
+    <div id="upload">
+        <label for="file">選擇文件：</label>
+        <input type="file" name="file" id="file">
+    </div>
+    <button id="return">歸還機台</button>
+    <div class="loading"></div>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            hideLoading();
+            /*
+            const jsFiles = [
+                'file1.js',
+                'file2.js',
+                // 添加其他檔案
+            ];
+
+            jsFiles.forEach(file => {
+                const script = document.createElement('script');
+                script.src = `{% static 'polls/js/' %}${file}`;
+                document.body.appendChild(script);
+            });
+            */
+        });
+        const tableContainer = document.getElementById("tableContainer");
+        let selectedData = [];
+        /* 前端轉換
+        const urlParams = new URLSearchParams(window.location.search);
+        const jsonData = urlParams.get('jsonData');
+        const selectData = JSON.parse(jsonData);
+        */
+        //後端餵資料
+        const selectData = JSON.parse('{{ json_data|safe }}');
+        console.log(selectData);
+        getDataAndUpdateTable(selectData);
+
+        //ENTER跳框
+        tableContainer.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                spaninput();
+            }
+        });
+        /*
+        document.addEventListener('click', function (event) {
+            var target = event.target;
+            console.log(target);
+        });
+        */
+        const PositionData = [];
+        const RemarkData = [];
+        const thead = tableContainer.querySelector("thead");
+        thead.addEventListener("click", spaninput);
+        const tbody = tableContainer.querySelector("tbody");
+        const Row = tbody.querySelectorAll("tr");
+        Row.forEach((row, indexrow) => {
+            const td = row.querySelectorAll("td");
+            for (let i = 0; i < 9; i++) { td[i].addEventListener("click", spaninput); }
+            td[9].addEventListener("click", function () {
+                spaninput();
+                const cellContent = td[9].textContent;
+                td[9].innerHTML = "";
+                const input = document.createElement("input");
+                input.type = "text";
+                input.classList.add("input");
+                input.value = cellContent;
+                td[9].appendChild(input);
+
+                if (PositionData.length > 0) {
+                    const dataDisplay = document.createElement("div");
+                    dataDisplay.classList.add("data-display");
+
+                    PositionData.forEach((item) => {
+                        const span = document.createElement("span");
+                        span.textContent = item; // 將陣列元素設置為 div 內容
+                        span.addEventListener("click", function () {
+                            event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                            input.value = span.textContent
+                            spaninput();
+                        });
+                        dataDisplay.insertBefore(span, dataDisplay.firstChild); // 將 div 元素添加到 dataDisplay
+                    });
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    td[9].appendChild(dataDisplay);
+                }
+                input.focus();
+            });
+
+            td[10].addEventListener("click", function () {
+                spaninput();
+                const cellContent = td[10].textContent;
+                td[10].innerHTML = "";
+                const input = document.createElement("input");
+                input.type = "text";
+                input.classList.add("input");
+                input.value = cellContent;
+                td[10].appendChild(input);
+
+                if (RemarkData.length > 0) {
+                    const dataDisplay = document.createElement("div");
+                    dataDisplay.classList.add("data-display");
+
+                    RemarkData.forEach((item) => {
+                        const span = document.createElement("span");
+                        span.textContent = item; // 將陣列元素設置為 div 內容
+                        span.addEventListener("click", function () {
+                            event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                            input.value = span.textContent
+                            spaninput();
+                        });
+                        dataDisplay.insertBefore(span, dataDisplay.firstChild); // 將 div 元素添加到 dataDisplay
+                    });
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    td[10].appendChild(dataDisplay);
+                }
+                input.focus();
+            });
+            td[11].addEventListener("click", spaninput);
+        });
+
+        //cc_mail
+        const cc_mail = document.getElementById("cc_mail");
+        const cc_mail_label = document.createElement("label");
+        cc_mail_label.textContent = "cc_mail:";
+        cc_mail.appendChild(cc_mail_label);
+        axios.get('/polls/user_info_mail/')
+            .then(function (response) {
+                const options = response.data.users_email
+                select_input(options, cc_mail);
+            })
+            .catch(error => {
+                alert("user_mail顯示失敗");
+                console.error(error);
+            })
+            .finally(() => {
+            });
+
+        //message
+        const message = document.getElementById("message");
+        const label = document.createElement("label");
+        label.textContent = "Message:";
+        label.setAttribute("for", "message");
+
+        const textarea = document.createElement("textarea");
+        textarea.id = "message";
+        textarea.name = "message";
+        textarea.placeholder = "Enter your message here...";
+        textarea.rows = 4;
+        textarea.cols = 50;
+        message.appendChild(label);
+        message.appendChild(textarea);
+
+        //彈跳視窗
+        const returncontainer = document.getElementById("returncontainer");
+        const returncontent = document.getElementById("returncontent");
+        const overlay = document.getElementById("overlay");
+        let isPopupOpen = false;
+        const returnbutton = document.getElementById("return");
+        returnbutton.addEventListener("click", function () {
+            spaninput();
+            if (!isPopupOpen) {
+                returncontainer.style.opacity = "1";
+                returncontainer.style.pointerEvents = "auto";
+                overlay.style.opacity = "1";
+                overlay.style.pointerEvents = "auto";
+                isPopupOpen = true;
+            } else {
+                closePopup();
+            }
+        });
+
+        document.getElementById("confirm").addEventListener("click", function () {
+            const status = selectData.some((data) => {    //.some 是當一個條件達成true時會立即返還  //.every是當所有條件達成時會才返還
+                if (data.status != 'Rent') {                //selectData的status不能改 所以用改之前的也可
+                    console.log("機台狀態必須為Rent")
+                    return true;
+                }
+                return false;
+            });
+            if (status) {
+                alert("機台狀態必須為Rent")
+                closePopup();
+                return;
+            }
+            showLoading();
+            const finaldata = tablefinaldata();
+            const fileInput = document.getElementById('file');
+            const file_data = fileInput.files[0];
+            const requestData = {
+                'finaldata': JSON.stringify(finaldata),
+                'message': JSON.stringify(textarea.value),
+                'cc_mail': JSON.stringify(document.getElementById("cc_mail").querySelector('input').value),
+                'file': file_data
+            };
+            axios.post('/polls/returnplatform/', requestData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+                .then(function (response) {
+                    if (response.data.redirect_url) {
+                        window.location.replace(response.data.redirect_url);
+                    }
+                    else if (response.data.error) {
+                        console.log(response.data.error);
+                        alert(response.data.error);
+                    }
+                })
+                .catch(error => {
+                    alert("儲存失敗");
+                    console.error(error);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+            closePopup();
+        });
+        document.getElementById("cancel").addEventListener("click", closePopup);
+        overlay.addEventListener("click", closePopup);
+        function closePopup() {
+            returncontainer.style.opacity = "0";
+            returncontainer.style.pointerEvents = "none";
+            overlay.style.opacity = "0";
+            overlay.style.pointerEvents = "none";
+            isPopupOpen = false;
+        }
+
+
+
+
+
+
+        function getDataAndUpdateTable(u) {
+            const data = u;
+            // 抓div創建表格
+            const tableContainer = document.getElementById("tableContainer");
+            // 清空表單
+            tableContainer.innerHTML = "";
+            // 創建表
+            const table = document.createElement("table");
+            table.classList.add("table");
+            // 創建表頭
+            const thead = document.createElement("thead"); //表頭
+            const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+            const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'borrower', 'status', 'position', 'remark', 'borrow_time'];
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // 創建表格主體
+            const tbody = document.createElement("tbody");
+            data.forEach(rowData => {
+                const row = document.createElement("tr");
+
+                headers.forEach(header => {
+                    const cell = document.createElement("td");
+                    const cellContent = document.createElement("span"); //分配每一格
+                    cellContent.textContent = rowData[header];
+                    cell.appendChild(cellContent);
+                    row.appendChild(cell);
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+        }
+
+        function spaninput() {
+            console.log("spaninput listen");
+            const tbody = tableContainer.querySelector("tbody");
+            const Row = tbody.querySelectorAll("tr");
+            Row.forEach((row, indexrow) => {
+                const Td = row.querySelectorAll("td");
+                Td.forEach((td, indextd) => {
+                    const input = td.querySelectorAll("input[type='text']")
+                    input.forEach(input => {
+                        const cell = input.parentElement;
+                        const cellContent = document.createElement("span");
+                        if (`${indextd}` == 9) {
+                            recordData(PositionData, input.value);
+                            console.log("position:", PositionData);
+                        }
+                        else if (`${indextd}` == 10) {
+                            recordData(RemarkData, input.value);
+                            console.log("remark:", RemarkData);
+                        }
+                        cellContent.textContent = input.value;
+                        cell.innerHTML = ""; // 清空單元格內容
+                        cell.appendChild(cellContent); // 將單元格內容設定為 cellContent 元素
+                    });
+
+                });
+            });
+        };
+        function recordData(record, text) {
+            const isDuplicate = record.includes(text);
+            if (!isDuplicate) {
+                if (text.trim() != "") {
+                    //record.unshift(text); // 將選定的數據添加到數組的開頭
+                    //record.splice(3); // 保留最新的三筆數據，刪除多餘的數據
+                    record.push(text); // 陣列尾巴添加
+                    if (record.length > 3) {
+                        record.splice(0, record.length - 3); // 從陣列0開始 刪除1筆
+                    }
+                }
+            }
+            else {
+                const index = record.indexOf(text);
+                if (index !== -1) {
+                    // 移除重複資料
+                    record.splice(index, 1);
+                }
+                record.push(text);
+                if (record.length > 3) {
+                    record.splice(0, record.length - 3); // 從陣列0開始 刪除1筆
+                }
+            }
+        };
+
+        function select_input(option, container) {
+            const td = document.createElement("td");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.classList.add("input");
+            td.appendChild(input);
+            input.addEventListener("focus", function () {
+                const dataDisplay = document.createElement("div");
+                dataDisplay.classList.add("data-display");
+                dataDisplay.style.position = 'absolute';
+                dataDisplay.style.left = '0';
+                dataDisplay.style.top = '100%';
+                dataDisplay.style.width = 'fit-content';
+                dataDisplay.style.maxHeight = '200px';
+                dataDisplay.style.overflow = 'auto';
+                dataDisplay.style.backgroundColor = '#ffffff';
+                dataDisplay.style.border = '1px solid #cccccc';
+                dataDisplay.style.padding = '5px';
+                dataDisplay.style.zIndex = '2';
+
+                option.forEach(optionData => {
+                    const option = document.createElement("span");
+                    option.textContent = optionData;
+                    option.addEventListener("click", function () {
+                        event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                        //groupcombine(optionData, indexrow);
+                        //spaninput();
+                    });
+                    dataDisplay.appendChild(option);
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    option.addEventListener("click", function () {
+                        input.value = optionData;
+                        dataDisplay.remove();
+                        console.log(input.value)
+                    });
+
+                });
+                td.appendChild(dataDisplay);
+            });
+
+            container.appendChild(td);
+            console.log(td)
+            //CSS
+            td.style.position = 'relative';
+            const dataDisplay = document.querySelectorAll('.data-display');
+            console.log(dataDisplay)
+            dataDisplay.forEach((dataDisplay) => {
+                dataDisplay.style.position = 'absolute';
+                dataDisplay.style.left = '0';
+                dataDisplay.style.top = '100%';
+                dataDisplay.style.width = 'fit-content';
+                dataDisplay.style.maxHeight = '200px';
+                dataDisplay.style.overflow = 'auto';
+                dataDisplay.style.backgroundColor = '#ffffff';
+                dataDisplay.style.border = '1px solid #cccccc';
+                dataDisplay.style.padding = '5px';
+                dataDisplay.style.zIndex = '2';
+            });
+            const spanElements = document.querySelectorAll('.data-display span');
+            spanElements.forEach((span) => {
+                span.style.display = 'block';
+                span.style.padding = '5px';
+                span.style.cursor = 'pointer';
+            });
+            spanElements.forEach((span) => {
+                span.addEventListener('mouseover', () => {
+                    span.style.backgroundColor = '#f2f2f2';
+                });
+
+                span.addEventListener('mouseout', () => {
+                    span.style.backgroundColor = '';
+                });
+            });
+        }
+
+
+        function tablefinaldata() {
+            const finaldata = [];
+            const tbody = tableContainer.querySelector("tbody");
+            const row = tbody.querySelectorAll("tr");
+            row.forEach((row, index) => {
+                const Td = row.querySelectorAll("td");
+                const finaldatarow = [];
+                var sn;
+                var status;
+                var position;
+                var remark;
+                Td.forEach((td, indextd) => {
+                    const tddata = td.querySelector("span");
+                    if (`${indextd}` == 6) { sn = tddata.textContent }
+                    else if (`${indextd}` == 8) { status = tddata.textContent }
+                    else if (`${indextd}` == 9) { position = tddata.textContent }
+                    else if (`${indextd}` == 10) { remark = tddata.textContent }
+                })
+                data = ({ sn: sn.trim(), status: status.trim(), position: position.trim(), remark: remark.trim() });
+                finaldata.push(data);  //push加在陣列尾巴
+            })
+            return finaldata;
+        }
+    </script>
+</body>
+
+</html>
+{% load static %}

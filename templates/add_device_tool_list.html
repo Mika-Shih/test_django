@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+
+<head>
+    <link rel="style" href="{%static 'polls/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <style>
+        td {
+            position: relative;
+            /*相對位置布局 沒有則下拉框會不見*/
+        }
+
+        .input[type="text"] {
+            width: 75%;
+        }
+
+        .data-display {
+            position: absolute;
+            left: 0;
+            top: 100%;
+            /* 將 top 設置為 100% 以覆蓋容器 */
+            width: fit-content;
+            /* 設置 */
+            width: 540%;
+            max-height: 400px;
+            overflow: auto;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            padding: 5px;
+            z-index: 2;
+            /* 設置較高的 z-index 值 */
+        }
+
+        .data-display span {
+            display: block;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .data-display span:hover {
+            background-color: #f2f2f2;
+            /* 鼠標懸停時的背景顏色 */
+        }
+
+
+
+        .left-div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-row label {
+            width: 120px;
+            margin-right: 10px;
+        }
+
+        .input-row input,
+        .input-row textarea {
+            width: 100%;
+            max-width: 200px;
+        }
+
+
+
+        .container {
+            display: flex;
+        }
+
+        .left-container {
+            flex: 1;
+            padding: 10px;
+            /* 添加适当的样式 */
+            border: 1px solid #ccc;
+            /* 添加适当的样式 */
+        }
+
+        .right-container {
+            flex: 1;
+            padding: 10px;
+            /* 添加适当的样式 */
+            border: 1px solid #ccc;
+            /* 添加适当的样式 */
+        }
+    </style>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+    <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<body>
+    <div class="loading"></div>
+    <div class="container">
+        <div id="dvice_tool_div" class="right-container">
+            <button id="add_hwid">送出</button>
+        </div>
+    </div>
+    <!--select2-->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!--select2-->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            hideLoading();
+        });
+        const categoryoption = ['TOOL', 'WLAN_BT', 'NFC', 'LAN', 'DOCK_LAN', 'WWAN_GPS'];
+        const subdeviceoption = ['WLAN', 'BT', 'NFC', 'LAN', 'DOCK', 'DOCK_LAN', 'GNSS', 'WWANNET', 'USB', 'MCD', 'MBIM', 'PCIE'];
+
+        const device_tool_div = document.getElementById('dvice_tool_div');
+        const inputElements = [
+            { label: 'Category:', type: 'select', id: 'category', name: 'category', selectOptions: categoryoption },
+            { label: 'Sub Device:', type: 'select', id: 'subdevice', name: 'subdevice' },
+            { label: 'Short name:', type: 'text', id: 'shortname', name: 'shortname' },
+        ];
+        const inputElement_div = [
+
+            { label: 'Long name:', type: 'text', id: 'longname', name: 'longname' },
+            { label: 'Supported HW ID:', type: 'textarea', id: 'hw_id', name: 'hw_id', rows: 4 }
+        ]
+        inputElements.forEach((input) => {
+            const div = document.createElement('div');
+            const label = document.createElement("label");
+            const inputElement = input.type === 'select'
+                ? document.createElement("select")
+                : document.createElement("input");
+            label.setAttribute('for', input.id);
+            label.textContent = input.label;
+
+            if (input.id === 'category') {
+                input.selectOptions.forEach((optionText) => {
+                    const option = document.createElement("option");
+                    option.textContent = optionText;
+                    inputElement.appendChild(option);
+                });
+                inputElement.addEventListener("change", function () {
+                    const subdeviceSelect = document.getElementById('subdevice');
+                    subdeviceSelect.innerHTML = '';
+                    let subdeviceoption = [];
+                    subdeviceoption = categoryoption_decide_subdeviceoption();
+                    console.log(subdeviceoption)
+                    subdeviceoption.forEach(optionData => {
+                        event.stopPropagation();
+                        const option = document.createElement("option");
+                        option.textContent = optionData;
+                        subdeviceSelect.appendChild(option);
+                    });
+                });
+            }
+
+            else if (input.id === 'subdevice') {
+                let subdevice_option = subdeviceoption;
+                subdevice_option.forEach(optionData => {
+                    const option = document.createElement("option");
+                    option.textContent = optionData;
+                    inputElement.appendChild(option);
+                });
+            }
+
+            inputElement.setAttribute("type", "text");
+            inputElement.setAttribute("id", input.id);
+            inputElement.setAttribute("name", input.name);
+            div.appendChild(label);
+            div.appendChild(inputElement);
+            device_tool_div.appendChild(div);
+        });
+
+
+
+        document.getElementById("category").addEventListener("change", function () {
+            if (document.getElementById("longname")) {
+                document.getElementById("longname").parentNode.remove();
+                document.getElementById("hw_id").parentNode.remove();
+            }
+            if (document.getElementById("category").value != 'TOOL') {
+                inputElement_div.forEach((input) => {
+                    const div = document.createElement('div');
+                    //div.id = input.id
+                    const label = document.createElement("label");
+                    const inputElement = document.createElement("input")
+
+                    label.setAttribute('for', input.id);
+                    label.textContent = input.label;
+
+                    inputElement.setAttribute("type", "text");
+                    inputElement.setAttribute("id", input.id);
+                    inputElement.setAttribute("name", input.name);
+                    div.appendChild(label);
+                    div.appendChild(inputElement);
+                    device_tool_div.appendChild(div);
+                });
+
+            }
+        });
+
+
+
+
+
+        document.getElementById("add_hwid").addEventListener("click", function () {
+            showLoading();
+            if (document.getElementById("category").value == 'TOOL') {
+                var requestData = {
+                    'shortname': document.getElementById("shortname").value.trim(),
+                    'category': document.getElementById("category").value.trim(),
+                    'subdevice': document.getElementById("subdevice").value.trim(),
+                }
+            }
+            else {
+                var requestData = {
+                    'shortname': document.getElementById("shortname").value.trim(),
+                    'longname': document.getElementById("longname").value.trim(),
+                    'category': document.getElementById("category").value.trim(),
+                    'subdevice': document.getElementById("subdevice").value.trim(),
+                    'hw_id': document.getElementById("hw_id").value.trim()
+                }
+            }
+
+            axios.post('/pulsar/create_device_tool/', requestData)
+                .then(function (response) {
+                    if (response.data.redirect_url) { window.location.replace(response.data.redirect_url); }
+                    else if (response.data.error) { alert(response.data.error); }
+                })
+                .catch(function (error) {
+                    console.error(error);
+                })
+                .finally(() => {
+                    hideLoading();
+                })
+        });
+
+        function categoryoption_decide_subdeviceoption() {
+            // ['PowerStressTest', 'WLAN', 'BT', 'NFC', 'LAN', 'DOCK', 'DOCK_LAN', 'GNSS', 'WWANNET', 'USB', 'MCD', 'MBIM', 'PCIE'];
+            const category = document.getElementById("category").value
+            if (category == 'TOOL') { return subdeviceoption }
+            else if (category == 'WLAN_BT') { return ['WLAN', 'BT'] }
+            else if (category == 'NFC') { return ['NFC'] }
+            else if (category == 'LAN') { return ['LAN'] }
+            else if (category == 'DOCK_LAN') { return ['DOCK', 'DOCK_LAN'] }
+            else if (category == 'WWAN_GPS') { return ['GNSS', 'WWANNET', 'USB', 'MCD', 'MBIM', 'PCIE'] }
+        }
+    </script>
+
+
+    <script src="{%static 'polls/js/bootstrap.bundle.min.js'%}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>
+{% load static %}

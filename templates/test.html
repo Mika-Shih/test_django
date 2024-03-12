@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<head>
+  <style>
+    .table {
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    .table th,
+    .table td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+    }
+
+    .table th {
+      background-color: #f2f2f2;
+      font-size: 14px;
+    }
+
+    .table td {
+      font-size: 12px;
+    }
+
+    .pagination {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .pagination li {
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    .pagination li a {
+      display: block;
+      padding: 6px 10px;
+      text-decoration: none;
+      background-color: #f2f2f2;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .pagination li.current a {
+      background-color: #333;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <select id="mySelect">
+    <option value="option1">改數值</option>
+    <option value="option2">查詢</option>
+    <option value="option3">刪除 / status</option>
+  </select>
+  <button id="confirmButton">確認</button>
+
+  <div id="tableContainer"></div>
+  <div id="paginationContainer"></div>
+  <script>
+
+  </script>
+  <script>
+    // 監聽確認按鈕的點擊事件
+    document.getElementById("confirmButton").addEventListener("click", function () {
+      // 取得下拉選單的值
+      const selectedValue = document.getElementById("mySelect").value;
+
+      // 執行需要的操作
+      console.log("選擇的值:", selectedValue);
+    });
+
+
+
+
+    let selectedData = [];
+    // 抓數據刷新表格
+    function getDataAndUpdateTable(u, pageSize) {
+      const data = u;
+      // 抓div創建表格
+      const tableContainer = document.getElementById("tableContainer");
+
+      // 清空表單
+      tableContainer.innerHTML = "";
+      // 創建表
+      const table = document.createElement("table");
+      table.classList.add("table");
+
+      // 創建表頭
+      const thead = document.createElement("thead"); //表頭
+      const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+      // 創建全選框
+      const selectAllCheckbox = document.createElement("input");
+      selectAllCheckbox.type = "checkbox";
+      selectAllCheckbox.id = "selectAllCheckbox";
+      selectAllCheckbox.addEventListener("change", function () {
+        const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']"); //每個列的框框
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = selectAllCheckbox.checked; // 將每個 checkbox 的狀態調整為全選框一致
+
+          const rowData = getRowDataFromCheckbox(checkbox);
+
+          if (checkbox.checked) {
+            const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (!isDuplicate) {
+              selectedData.push(rowData); // 將選中的資料加入 selectedData 陣列
+            }
+          } else {
+            const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (index > -1) {
+              selectedData.splice(index, 1); // 從 selectedData 陣列中移除取消選中的資料
+            }
+          }
+        });
+        console.log(selectedData);
+      });
+
+      const selectAllTh = document.createElement("th");
+      selectAllTh.appendChild(selectAllCheckbox);
+      headerRow.appendChild(selectAllTh);
+
+      const headers = Object.keys(data[0]);
+      //headers = document.getElementById("headers");
+      //console.log(headers)
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      // 得到當前頁碼
+      const currentPage = getCurrentPage();
+      console.log(currentPage);
+      // 當前顯示數據
+      const startIndex = (currentPage - 1) * pageSize;   //第n頁的第1筆資料
+      const endIndex = startIndex + pageSize;
+      const pageData = data.slice(startIndex, endIndex); //分頁數據
+      console.log(startIndex, currentPage);
+
+      // 創建表格主體
+      const tbody = document.createElement("tbody");
+      pageData.forEach(rowData => {
+        const row = document.createElement("tr");
+
+        // 創建行複選框
+        const rowCheckbox = document.createElement("input");
+        rowCheckbox.type = "checkbox";
+        rowCheckbox.dataset.row = "checkbox";
+        rowCheckbox.addEventListener("change", function () {
+          rowData = getRowDataFromCheckbox(rowCheckbox);
+          if (rowCheckbox.checked) {  //check就是選中
+            const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (!isDuplicate) {
+              selectedData.push(rowData); // 將選中的資料加入 selectedData 陣列
+            }
+          } else {
+            const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(rowData));  //findindex查找方法  如果(index > -1)則表示有找到
+            if (index > -1) {
+              selectedData.splice(index, 1);  //這裡的1為索引到的1個  splice移除
+            }
+          }
+          const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+          const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+          selectAllCheckbox.checked = allChecked;
+          console.log(selectedData);
+        });
+
+        const selectRowTd = document.createElement("td");
+        selectRowTd.appendChild(rowCheckbox);
+        row.appendChild(selectRowTd);
+
+        headers.forEach(header => {
+          const cell = document.createElement("td");
+          const cellContent = document.createElement("span"); //分配每一格
+          cellContent.textContent = rowData[header];
+          cell.appendChild(cellContent);
+
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+      // 創建新增列
+      const addRow = document.createElement("tr");
+      const checkboxCell = document.createElement("td");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkboxCell.appendChild(checkbox);
+      addRow.appendChild(checkboxCell);
+      headers.forEach((header, index) => {
+        const cell = document.createElement("td");
+        console.log(header);
+        console.log("-");
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.style.width = "100px"; // 調整輸入框寬度
+        cell.appendChild(input);
+
+
+        addRow.appendChild(cell);
+      });
+
+      tbody.appendChild(addRow);
+
+      table.appendChild(tbody);
+
+
+
+
+
+      tableContainer.appendChild(table);
+      //進入表格後 自動勾選
+      const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+      let trueCount = 0;
+      checkboxes.forEach(checkbox => {
+        const rowData = getRowDataFromCheckbox(checkbox);
+        const isSelected = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData)); //一行一行檢查 主框是rowData
+        checkbox.checked = isSelected; //假設右邊是true 則左勾選
+        if (isSelected) { trueCount++; } // 如果 isSelected 為 true，計數器加一
+      });
+      selectAllCheckbox.checked = checkboxes.length === trueCount;
+      // 建立分頁按鈕
+      createPaginationButtons(data, pageSize);
+    }
+    // Funtion分頁按鈕
+    function createPaginationButtons(data, pageSize) {
+      const tableContainer = document.getElementById("tableContainer");
+
+      // 計算總頁數
+      const totalPages = Math.ceil(data.length / pageSize); //math.ceil向上取整數
+
+      // 清空分頁按鈕
+      let paginationContainer = document.getElementById("paginationContainer");
+      if (!paginationContainer) {
+        paginationContainer = document.createElement("div");
+        paginationContainer.id = "paginationContainer";
+        tableContainer.appendChild(paginationContainer);
+      } else {
+        paginationContainer.innerHTML = "";
+      }
+      // 創建分頁按鈕
+      for (let i = 1; i <= totalPages; i++) {
+        const button = document.createElement("button");
+        button.textContent = i;  //button按鈕的數字
+        button.addEventListener("click", function () {
+          setCurrentPage(i);
+          getDataAndUpdateTable(data, pageSize);
+        });
+        paginationContainer.appendChild(button);
+      }
+
+      tableContainer.appendChild(paginationContainer);
+    }
+    // 當前頁碼
+    function getCurrentPage() {
+      const currentPage = sessionStorage.getItem("currentPage");
+      return currentPage ? parseInt(currentPage) : 1;
+    }
+    // 設置當前頁碼
+    function setCurrentPage(page) {
+      sessionStorage.setItem("currentPage", page);
+    }
+    // 從複選框中獲取對應的資料
+    function getRowDataFromCheckbox(checkbox) {
+      const row = checkbox.closest('tr');
+      const rowData = {};
+
+      const cells = row.querySelectorAll('td');
+      const headers = Array.from(tableContainer.querySelectorAll('th')).map(th => th.textContent);
+
+      cells.forEach((cell, index) => {
+        const header = headers[index];
+        const value = cell.textContent.trim(); // 移除前後空白
+        if (header !== '') { // 排除空白的鍵名
+          rowData[header] = value;
+        }
+      });
+      return rowData;
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const jsonData = urlParams.get('jsonData');
+    const selectData = JSON.parse(jsonData);
+    console.log(selectData);
+    getDataAndUpdateTable(selectData, 20);
+  </script>
+</body>
+
+</html>

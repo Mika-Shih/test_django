@@ -1,0 +1,1257 @@
+{% load static %}
+<!DOCTYPE html>
+<head>
+    <style>
+        .table,
+        .newtable {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        .table th,
+        .table td,
+        .newtable th,
+        .newtable td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+            box-sizing: border-box;
+            width: 100px;
+            /* 設置固定的寬度 */
+            height: 40px;
+            /* 設置固定的高度 */
+        }
+
+        .table th,
+        .newtable th {
+            background-color: #f2f2f2;
+            font-size: 14px;
+        }
+
+        .table td,
+        .newtable td {
+            font-size: 12px;
+        }
+
+        .table tr td:nth-child(1) {
+            width: calc(2%);
+        }
+
+        .table tr td:nth-child(2),
+        .newtable tr td:nth-child(1) {
+            width: calc(18%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(3),
+        .newtable tr td:nth-child(2) {
+            width: calc(10%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(4),
+        .newtable tr td:nth-child(3) {
+            width: calc(8%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(5),
+        .newtable tr td:nth-child(4) {
+            width: calc(12%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(6),
+        .newtable tr td:nth-child(5) {
+            box-sizing: border-box;
+            width: calc(15%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(7),
+        .newtable tr td:nth-child(6) {
+            box-sizing: border-box;
+            width: calc(8%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(8),
+        .newtable tr td:nth-child(7) {
+            box-sizing: border-box;
+            width: calc(8%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(9),
+        .newtable tr td:nth-child(8) {
+            box-sizing: border-box;
+            width: calc(8%);
+            height: 40px;
+        }
+
+        .table tr td:nth-child(10),
+        .newtable tr td:nth-child(9) {
+            box-sizing: border-box;
+            width: calc(15%);
+            height: 40px;
+        }
+
+        .input[type="text"] {
+            width: 75%;
+        }
+
+        .select {
+            width: 90%;
+        }
+
+        .table-container {
+            position: relative;
+        }
+
+        td {
+            position: relative;
+            /*相對位置布局 沒有則下拉框會不見*/
+        }
+
+        .data-display {
+            position: absolute;
+            left: 0;
+            top: 100%;
+            /* 將 top 設置為 100% 以覆蓋容器 */
+            width: fit-content;
+            /* 設置 */
+            width: 220%;
+            max-height: 200px;
+            overflow: auto;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            padding: 5px;
+            z-index: 2;
+            /* 設置較高的 z-index 值 */
+        }
+
+        .data-display span {
+            display: block;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .data-display span:hover {
+            background-color: #f2f2f2;
+            /* 鼠標懸停時的背景顏色 */
+        }
+
+        /*彈跳視窗*/
+        .popup-container,
+        .newplatform-container {
+            position: fixed;
+            top: 50%;
+            left: 40%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .newplatformcheck-container {
+            position: fixed;
+            top: 85%;
+            left: 40%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup-content,
+        .newplatform-content,
+        .newplatformcheck-content {
+            width: 200%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .overlay {
+            /* 反灰效果的樣式 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* 調整反灰的透明度 */
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /*輸入框對齊*/
+        .input-container {
+            width: 200px;
+            margin-bottom: 10px;
+
+        }
+
+        .input-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-container input[type="text"],
+        .input-container select {
+            display: block;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            /* 調整框模型 */
+        }
+
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+        
+
+
+    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+    <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<body>
+    <button id="newplatform">新增platform機台</button>
+    <button id="copy_line">以勾選處向下套用</button>
+    <div id="popupnewplatformContainer" class="newplatform-container">
+        <div id="popupnewplatformContent" class="newplatform-content">
+            <h2>新增機台條件</h2>
+            <br>
+            <div id="input-form" class="input-container"></div>
+            <br>
+
+            <br>
+            <button id="platformconfirm">確定</button>
+            <button id="platformcancel">取消</button>
+        </div>
+    </div>
+    <div id="popupnewplatformcheckContainer" class="newplatformcheck-container">
+        <div id="popupnewplatformcheckContent" class="newplatformcheck-content">
+            <h3>確定新增以上內容?</h3>
+            <button id="platformcheckconfirm">確定</button>
+            <button id="platformcheckcancel">取消</button>
+        </div>
+    </div>
+    <div id="tableContainer"></div>
+    <div id="paginationContainer"></div>
+    <Br>
+    <div id="upload">
+        <label for="file">選擇文件：</label>
+        <input type="file" name="file" id="file">
+    </div>
+    <button id="add">新增機台</button>
+    <div id="popupContainer" class="popup-container">
+        <div id="popupContent" class="popup-content">
+            <h2>確定新增以下內容?</h2> <!-- 2級標籤-->
+            <div id="tablefinal"></div>
+            <button id="confirm">確定</button>
+            <button id="cancel">取消</button>
+        </div>
+    </div>
+    <div id="overlay" class="overlay"></div><!--反灰-->
+    <br><br><br>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            hideLoading();
+        });
+        var jsonData = JSON.parse('{{ json_data|safe }}');   //.parse json_data轉為Javascript  //|safe 為Django安全傳遞資料  
+        console.log(jsonData);
+        const phaseoption = ['OOC', 'SI', 'PV1', 'PVT', 'TLD', 'MV', 'SI-2', 'PVT2', 'SI-3', 'PV2', 'SI1-B1', 'PV', 'PV3', 'PVR', 'PV-2', 'Bellagio 1.0', 'Type-C', 'Type-A', 'SI-1', ''];
+        const targetoption = ['NB', 'DOCK', 'DT', 'AIO', ''];
+        const groupoption = ['COMMERICAL', 'CONSUMER', ''];
+        
+        getDataAndUpdateTable(jsonData);
+        let selectedData = [];
+        // 抓數據刷新表格
+        function getDataAndUpdateTable(data) {
+            const tableContainer = document.getElementById("tableContainer");
+            tableContainer.innerHTML = "";
+            // 創建表
+            const table = document.createElement("table");
+            table.classList.add("table");
+            // 創建表頭
+            const thead = document.createElement("thead"); //表頭
+            const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+            // 創建全選框
+            const selectAllCheckbox = document.createElement("input");
+            selectAllCheckbox.type = "checkbox";
+            selectAllCheckbox.id = "selectAllCheckbox";
+            selectAllCheckbox.addEventListener("change", function () {
+                const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']"); //每個列的框框
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked; // 將每個 checkbox 的狀態調整為全選框一致
+                    if (checkbox.checked) {
+                        const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(data));
+                        if (!isDuplicate) {
+                            selectedData.push(data); // 將選中的資料加入 selectedData 陣列
+                        }
+                    } else {
+                        const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(data));
+                        if (index > -1) {
+                            selectedData.splice(index, 1); // 從 selectedData 陣列中移除取消選中的資料
+                        }
+                    }
+                });
+                console.log(selectedData);
+            });
+
+            const selectAllTh = document.createElement("th");
+            selectAllTh.appendChild(selectAllCheckbox);
+            headerRow.appendChild(selectAllTh);
+
+            const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'position', 'remark'];
+            //headers = document.getElementById("headers");
+            //console.log(headers)
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            // 創建表格主體
+            const tbody = document.createElement("tbody");
+            data.forEach(rowData => {
+                const row = document.createElement("tr");
+
+                // 創建行複選框
+                const rowCheckbox = document.createElement("input");
+                rowCheckbox.type = "checkbox";
+                rowCheckbox.dataset.row = "checkbox";
+                rowCheckbox.addEventListener("change", function () {
+                    if (rowCheckbox.checked) {  //check就是選中
+                        const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(data));
+                        if (!isDuplicate) {
+                            selectedData.push(data); // 將選中的資料加入 selectedData 陣列
+                        }
+                    } else {
+                        const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(data));  //findindex查找方法  如果(index > -1)則表示有找到
+                        if (index > -1) {
+                            selectedData.splice(index, 1);  //這裡的1為索引到的1個  splice移除
+                        }
+                    }
+                    const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+                    const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    console.log(selectedData);
+                });
+
+                const selectRowTd = document.createElement("td");
+                selectRowTd.appendChild(rowCheckbox);
+                row.appendChild(selectRowTd);
+
+                headers.forEach(header => {
+                    const cell = document.createElement("td");
+                    if (header == 'phase') {
+                        const select = document.createElement("select");
+                        select.classList.add("select");
+                        select.addEventListener("click", function () {
+                            select.innerHTML = '';
+                            phaseoption.forEach(optionData => {
+                                const option = document.createElement("option");
+                                option.textContent = optionData;
+                                select.appendChild(option);
+                            });
+                        })
+                        select.addEventListener("change", function () {
+                            event.stopPropagation();
+                            const selectedIndex = this.selectedIndex; //this 當前window  / selectedIndex  當前select選單第幾個  
+                            const selectedOption = phaseoption.splice(selectedIndex, 1)[0];   //移除(第幾個,元素個數) [返還取值第幾個元素]
+                            phaseoption.unshift(selectedOption); //加入開頭
+                            select.innerHTML = ''; //''才是清空  ""不是
+                            phaseoption.forEach(optionData => {
+                                const option = document.createElement("option");
+                                option.textContent = optionData;
+                                select.appendChild(option);
+                            });
+                        });
+                        
+                        cell.appendChild(select);
+                    }
+                    else {
+                        const cellContent = document.createElement("span"); //分配每一格
+                        cellContent.textContent = rowData[header];
+                        cell.appendChild(cellContent);
+                    }
+
+
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+
+        }
+        document.getElementById("copy_line").addEventListener("click", function () {
+            spaninput();
+            const checkboxes = document.querySelectorAll("#tableContainer input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+            const selectedRows = []; // 存储选中行的数据
+            var rows
+            checkboxes.forEach((checkbox, index) => {
+                if (checkbox.checked) {
+                    selectedRows.push(selectedData[index]);
+                    rows = `${index}`;
+                    console.log(rows);
+                }
+            });
+            if (selectedRows.length > 1) {
+                alert("請勾選要套用的指定列(一列)");
+            }
+            else {
+                copy(rows);
+            }
+            const selectedRowCount = selectedRows.length; // 获取选中行的数量
+            console.log("Number of Selected Rows:", selectedRowCount);
+
+        });
+
+        //點擊別處跳框 (不紀錄)
+        const tableContainer = document.getElementById("tableContainer");
+        const tbody = tableContainer.querySelector("tbody");
+        /*   input & span無法被點  6/29 發現
+        //const cells = tableContainer.querySelectorAll("td:not(:has(input))");
+        const cells = tableContainer.querySelectorAll("span");
+        document.addEventListener("click", function (event) {
+            const EventListener = event.target;
+            const isClickInsideTable = Array.from(cells).some(cell => cell.contains(EventListener));
+            if (!isClickInsideTable) {
+                console.log("****************");
+                spaninput();
+            }
+        });
+        */
+        //ENTER跳框
+        tableContainer.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+                spaninput();
+            }
+        });
+        const Row = tbody.querySelectorAll("tr");
+        const PlatformData = [];
+        let platformdelay;
+        const TargetData = [];
+        const GroupData = [];
+        const CycleData = [];
+        const SkuData = [];
+        const SNData = [];
+        const PositionData = [];
+        const RemarkData = [];
+        Row.forEach((row, indexrow) => {
+            const tdElements = row.querySelectorAll("td");
+            tdElements[1].addEventListener("click", function () {
+                spaninput();
+                fetch("/polls/api/addplatformcombination")
+                    .then(response => response.json())
+                    .then(data => {
+                        const platform = data.reduce((acc, item) => { if (item.platform !== "") { acc.push(item.platform); } return acc; }, []);
+                        //置頂選項扣除
+                        PlatformData.forEach((item) => {
+                            const index = platform.indexOf(item);
+                            if (index !== -1) {
+                                platform.splice(index, 1);
+                            }
+                        });
+                        platformdelay = tdElements[1].textContent;
+                        tdElements[1].innerHTML = '';
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.classList.add("input");
+                        tdElements[1].appendChild(input);
+                        //下方框
+                        const dataDisplay = document.createElement("div");
+                        dataDisplay.classList.add("data-display");
+
+                        platform.forEach(optionData => {
+                            const option = document.createElement("span");
+                            option.textContent = optionData;
+
+                            option.addEventListener("click", function () {
+                                event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                                groupcombine(optionData, indexrow);
+                                spaninput();
+                            });
+                            dataDisplay.appendChild(option);
+                        });
+
+                        PlatformData.forEach((item) => {
+                            const span = document.createElement("span");
+                            span.textContent = item; // 將陣列元素設置為 div 內容
+                            span.addEventListener("click", function () {
+                                event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                                groupcombine(item, indexrow);
+                                spaninput();
+                            });
+                            dataDisplay.insertBefore(span, dataDisplay.firstChild); // 將 div 元素添加到 dataDisplay
+                        });
+
+                        input.addEventListener("input", function () {
+                            const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                            const options = Array.from(dataDisplay.children);
+                            options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                                const aText = a.textContent.toLowerCase();
+                                const bText = b.textContent.toLowerCase();
+                                return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                            });
+                            // 清空下方顯示框的內容
+                            dataDisplay.innerHTML = "";
+                            options.forEach(option => {   //options選項放入選單中
+                                dataDisplay.appendChild(option);
+                                if (option.textContent.toLowerCase().includes(searchText)) {
+                                    option.style.display = "block";
+                                } else {
+                                    option.style.display = "none";
+                                }
+                            });
+                        });
+                        tdElements[1].appendChild(dataDisplay);
+                        input.focus();
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            });
+            tdElements[2].addEventListener("click", function () {
+                spaninput();
+            });
+            tdElements[3].addEventListener("click", function () {
+                spaninput();
+            });
+            tdElements[4].addEventListener("click", function () {
+                spaninput();
+            });
+            tdElements[5].addEventListener("click", function () {
+                spaninput();
+            });
+            tdElements[6].addEventListener("click", function () {
+                spaninput();
+                const cellContent = tdElements[6].textContent;
+                tdElements[6].innerHTML = "";
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.classList.add("input");
+                input.value = cellContent;
+                tdElements[6].appendChild(input);
+                if (SkuData.length > 0) {
+                    const dataDisplay = document.createElement("div");
+                    dataDisplay.classList.add("data-display");
+
+                    SkuData.forEach((item) => {
+                        const span = document.createElement("span");
+                        span.textContent = item; // 將陣列元素設置為 div 內容
+                        span.addEventListener("click", function () {
+                            event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                            input.value = span.textContent
+                            spaninput();
+                        });
+                        dataDisplay.insertBefore(span, dataDisplay.firstChild); // 將 div 元素添加到 dataDisplay
+                    });
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    tdElements[6].appendChild(dataDisplay);
+                }
+                input.focus();
+            });
+
+            tdElements[7].addEventListener("click", function () {
+                spaninput();
+                const cellContent = tdElements[7].textContent;
+                tdElements[7].innerHTML = "";
+
+                const input = document.createElement("input");
+                console.log("+");
+                input.type = "text";
+                input.classList.add("input");
+                input.value = cellContent;
+                tdElements[7].appendChild(input);
+                console.log("++");
+
+                const dataDisplay = document.createElement("div");
+                dataDisplay.classList.add("data-display");
+                if (SNData.length > 0) {
+                    console.log("+++");
+                    SNData.forEach((item) => {
+                        const span = document.createElement("span");
+                        span.textContent = item; // 將陣列元素設置為 div 內容
+                        span.addEventListener("click", function () {
+                            event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                            input.value = span.textContent
+                            spaninput();
+                        });
+                        dataDisplay.insertBefore(span, dataDisplay.firstChild); // 將 div 元素添加到 dataDisplay
+                    });
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    tdElements[7].appendChild(dataDisplay);
+                }
+                input.focus();
+
+            });
+            tdElements[8].addEventListener("click", function () {
+                spaninput();
+                const cellContent = tdElements[8].textContent;
+                tdElements[8].innerHTML = "";
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.classList.add("input");
+                input.value = cellContent;
+                tdElements[8].appendChild(input);
+                if (PositionData.length > 0) {
+                    const dataDisplay = document.createElement("div");
+                    dataDisplay.classList.add("data-display");
+
+                    PositionData.forEach((item) => {
+                        const span = document.createElement("span");
+                        span.textContent = item; // 將陣列元素設置為 div 內容
+                        span.addEventListener("click", function () {
+                            event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                            input.value = span.textContent
+                            spaninput();
+                        });
+                        dataDisplay.insertBefore(span, dataDisplay.firstChild); // 將 div 元素添加到 dataDisplay
+                    });
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    tdElements[8].appendChild(dataDisplay);
+                }
+                input.focus();
+
+            });
+
+            tdElements[9].addEventListener("click", function () {
+                spaninput();
+                const cellContent = tdElements[9].textContent;
+                tdElements[9].innerHTML = "";
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.classList.add("input");
+                input.value = cellContent;
+                tdElements[9].appendChild(input);
+                if (RemarkData.length > 0) {
+                    const dataDisplay = document.createElement("div");
+                    dataDisplay.classList.add("data-display");
+
+                    RemarkData.forEach((item) => {
+                        const span = document.createElement("span");
+                        span.textContent = item; // 將陣列元素設置為 div 內容
+                        span.addEventListener("click", function () {
+                            event.stopPropagation();  //阻止事件冒泡  子元素觸發並不會影響父元素
+                            input.value = span.textContent
+                            spaninput();
+                        });
+                        dataDisplay.insertBefore(span, dataDisplay.firstChild); // 將 div 元素添加到 dataDisplay
+                    });
+
+                    input.addEventListener("input", function () {
+                        const searchText = input.value.toLowerCase(); // 搜索框的輸入數值轉換成小寫
+                        const options = Array.from(dataDisplay.children);
+                        options.sort((a, b) => { //排序 負數a b /正數 b a /0不影響
+                            const aText = a.textContent.toLowerCase();
+                            const bText = b.textContent.toLowerCase();
+                            return aText.startsWith(searchText) ? -1 : bText.startsWith(searchText) ? 1 : 0;
+                        });
+                        // 清空下方顯示框的內容
+                        dataDisplay.innerHTML = "";
+                        options.forEach(option => {   //options選項放入選單中
+                            dataDisplay.appendChild(option);
+                            if (option.textContent.toLowerCase().includes(searchText)) {
+                                option.style.display = "block";
+                            } else {
+                                option.style.display = "none";
+                            }
+                        });
+                    });
+                    tdElements[9].appendChild(dataDisplay);
+                }
+                input.focus();
+
+            });
+
+
+
+        });
+
+
+
+
+
+
+    </script>
+
+    <script>
+        function groupcombine(Data, indexrow) {
+            const tbody = tableContainer.querySelector("tbody");
+            const Row = tbody.querySelectorAll("tr");
+            Row.forEach((row, index) => {
+                if (`${indexrow}` == `${index}`) {
+                    const Td = row.querySelectorAll("td");
+                    Td.forEach((td, indextd) => {
+                        const [platform, target, group, cycle] = Data.split(" - ");
+                        recordData(PlatformData, Data);
+                        if (`${indextd}` == 1) {
+                            td.innerHTML = '';
+                            const cellContent = document.createElement("span");
+                            cellContent.textContent = platform;
+                            td.appendChild(cellContent);
+                        }
+                        if (`${indextd}` == 3) {
+                            td.innerHTML = '';
+                            const cellContent = document.createElement("span");
+                            cellContent.textContent = target;
+                            td.appendChild(cellContent);
+                        }
+                        if (`${indextd}` == 4) {
+                            td.innerHTML = '';
+                            const cellContent = document.createElement("span");
+                            cellContent.textContent = group;
+                            td.appendChild(cellContent);
+                        }
+                        if (`${indextd}` == 5) {
+                            td.innerHTML = '';
+                            const cellContent = document.createElement("span");
+                            cellContent.textContent = cycle;
+                            td.appendChild(cellContent);
+                        }
+                    });
+                }
+            });
+        }
+        function spaninput() {
+            console.log("spaninput listen");
+            const tbody = tableContainer.querySelector("tbody");
+            const Row = tbody.querySelectorAll("tr");
+            Row.forEach((row, index) => {
+                const Td = row.querySelectorAll("td");
+                Td.forEach((td, indextd) => {
+                    if (td.querySelector("select")) {
+                        /*
+                        const select = td.querySelectorAll("select")
+                        const selectedOption = select.options[select.selectedIndex].textContent;
+                        const span = document.createElement("span");
+                        span.textContent = selectedOption;
+                        td.innerHTML = "";
+                        td.appendChild(span);
+                        */
+                    }
+
+                    else if (`${indextd}` == 1) {
+                        const input = td.querySelectorAll("input[type='text']")
+                        input.forEach(input => {
+                            const cell = input.parentElement;
+                            const cellContent = document.createElement("span");
+                            cellContent.textContent = platformdelay;
+                            cell.innerHTML = "";
+                            cell.appendChild(cellContent); // 將單元格內容設定為 cellContent 元素
+                        });
+
+                    }
+
+                    else if (td.querySelector("input[type='text']")) {
+                        //console.log(`${index}`,`${indextd}`); //列 行 
+                        const input = td.querySelectorAll("input[type='text']")
+                        input.forEach(input => {
+                            const cell = input.parentElement;
+                            const cellContent = document.createElement("span");
+
+                            if (`${indextd}` == 6) {
+                                recordData(SkuData, input.value);
+                                console.log("sku:", SkuData);
+                            }
+                            else if (`${indextd}` == 7) {
+                                recordData(SNData, input.value);
+                                console.log("SN:", SNData);
+                            }
+                            else if (`${indextd}` == 8) {
+                                recordData(PositionData, input.value);
+                                console.log("position:", PositionData);
+                            }
+                            else if (`${indextd}` == 9) {
+                                recordData(RemarkData, input.value);
+                                console.log("remark:", RemarkData);
+                            }
+
+                            cellContent.textContent = input.value;
+                            cell.innerHTML = ""; // 清空單元格內容
+                            cell.appendChild(cellContent); // 將單元格內容設定為 cellContent 元素
+                        });
+                    }
+                });
+            });
+        };
+        function recordData(record, text) {
+            const isDuplicate = record.includes(text);
+            if (!isDuplicate) {
+                if (text.trim() != "") {
+                    //record.unshift(text); // 將選定的數據添加到數組的開頭
+                    //record.splice(3); // 保留最新的三筆數據，刪除多餘的數據
+                    record.push(text); // 陣列尾巴添加
+                    if (record.length > 3) {
+                        record.splice(0, record.length - 3); // 從陣列0開始 刪除1筆
+                    }
+                }
+            }
+            else {
+                const index = record.indexOf(text);
+                if (index !== -1) {
+                    // 移除重複資料
+                    record.splice(index, 1);
+                }
+                record.push(text);
+                if (record.length > 3) {
+                    record.splice(0, record.length - 3); // 從陣列0開始 刪除1筆
+                }
+            }
+        };
+    </script>
+    <script>
+        const popupnewplatformcheckContainer = document.getElementById("popupnewplatformcheckContainer");
+        const popupnewplatformContainer = document.getElementById("popupnewplatformContainer");
+        const popupContainer = document.getElementById("popupContainer");
+        const popupContent = document.getElementById("popupContent");
+        const overlay = document.getElementById("overlay");
+        let isPopupOpen = false;
+        let isplatformcheck = false;
+        const platformconfirm = document.getElementById("platformconfirm");
+        const platformcancel = document.getElementById("platformcancel");
+        //新增機台
+        document.getElementById("newplatform").addEventListener("click", function () {
+            if (!isPopupOpen) {
+                popupnewplatformContainer.style.opacity = "1";
+                popupnewplatformContainer.style.pointerEvents = "auto";
+                overlay.style.opacity = "1";
+                overlay.style.pointerEvents = "auto";
+                isPopupOpen = true;
+            } else {
+                closePopup();
+            }
+        });
+        //新增機台確認
+        document.getElementById("platformconfirm").addEventListener("click", function () {
+            var platform = document.getElementById('platform').value;
+            if (platform === "") {
+                document.getElementById("platformError").innerHTML = "Platform欄位不可為空";
+                return;
+            }
+            if (!isplatformcheck) {
+                popupnewplatformcheckContainer.style.opacity = "1";
+                popupnewplatformcheckContainer.style.pointerEvents = "auto";
+                overlay.style.opacity = "1";
+                overlay.style.pointerEvents = "auto";
+                popupnewplatformContainer.style.opacity = "0.85"; // 設定第一層彈跳視窗反灰
+                popupnewplatformContainer.style.pointerEvents = "none";
+                isplatformcheck = true;
+            }
+        });
+        //新增機台資料送出
+        document.getElementById("platformcheckconfirm").addEventListener("click", function () {
+            var platform = document.getElementById('platform').value;
+            var target = document.getElementById('target').value;
+            var group = document.getElementById('group').value;
+            var cycle = document.getElementById('cycle').value;
+            showLoading();
+            const addplatform = JSON.stringify({ platform: platform.trim(), target: target.trim(), group: group.trim(), cycle: cycle.trim() });
+            fetch(`/polls/api/addplatformonly?addplatform=${addplatform}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert("完成");
+                })
+                .catch(error => {
+                    alert("儲存失敗");
+                    console.error(error);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+            closePopup();
+        });
+        document.getElementById("platformcheckcancel").addEventListener("click", closePopup);
+        document.getElementById("platformcancel").addEventListener("click", closePopup);
+        document.getElementById("cancel").addEventListener("click", closePopup);
+        overlay.addEventListener("click", closePopup);
+
+        document.getElementById("add").addEventListener("click", function () {
+            spaninput();
+            if (checkplatformsn()) {
+                if (!isPopupOpen) {
+                    popupContainer.style.opacity = "1";
+                    popupContainer.style.pointerEvents = "auto";
+                    overlay.style.opacity = "1";
+                    overlay.style.pointerEvents = "auto";
+                    isPopupOpen = true;
+                } else {
+                    closePopup();
+                }
+                checktable();
+            }
+            else { alert('platform sn not empty'); }
+        });
+
+        //送出完成資料建檔
+        document.getElementById("confirm").addEventListener("click", function () {
+            showLoading();
+            const finaldata = JSON.stringify(tablefinaldata())
+            const fileInput = document.getElementById('file');
+            const file_data = fileInput.files[0];
+            const requestData = {
+                'finaldata': finaldata,
+                'message': 'Your message here',
+                'file': file_data
+            };
+            axios.post('/polls/addnewplatform/', requestData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            })
+                .then(function (response) {
+                    if (response.data.redirect_url) {
+                        window.location.replace(response.data.redirect_url);
+                    }
+                    else if (response.data.error) {
+                        console.log(response.data.error);
+                        if (response.data.error == 'sn 輸入值有重複 請在確認') {
+                            alert(response.data.error);
+                        }
+                        else {
+                            alert("sn : " + response.data.error + " 已經存在");
+                        }
+                    }
+                })
+                .catch(error => {
+                    alert("儲存機台失敗 請聯繫管理員");
+                    console.error(error);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+            closePopup();
+        });
+
+        function closePopup() {
+            popupContainer.style.opacity = "0";
+            popupContainer.style.pointerEvents = "none";
+            popupnewplatformContainer.style.opacity = "0";
+            popupnewplatformContainer.style.pointerEvents = "none";
+            popupnewplatformcheckContainer.style.opacity = "0";
+            popupnewplatformcheckContainer.style.pointerEvents = "none";
+            overlay.style.opacity = "0";
+            overlay.style.pointerEvents = "none";
+            isPopupOpen = false;
+            isplatformcheck = false;
+        }
+
+
+        // 確認表格資料
+
+        function checktable() {
+            const tableContainer = document.getElementById("tableContainer");
+            const oldtbody = tableContainer.querySelector("tbody");
+            const oldRow = oldtbody.querySelectorAll("tr");
+
+            const tablefinal = document.getElementById("tablefinal");
+            // 清空表單
+            tablefinal.innerHTML = "";
+            // 創建表
+            const table = document.createElement("table");
+            table.classList.add("newtable");
+            // 創建表頭
+            const thead = document.createElement("thead"); //表頭
+            const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+            const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'position', 'remark'];
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            const tbody = document.createElement("tbody");
+
+            oldRow.forEach((row, index) => {
+                const newrow = document.createElement("tr");
+                const Td = row.querySelectorAll("td");
+                Td.forEach((td, indextd) => {
+                    if (`${indextd}` > 0) {
+                        const cell = document.createElement("td");
+                        const cellContent = document.createElement("span");
+                        if (td.querySelector("span")) {
+                            const oldtd = td.querySelector("span");
+                            cellContent.textContent = oldtd.textContent;
+                        }
+                        else if (td.querySelector("select")) {
+                            const selectElement = td.querySelector("select");
+                            if (selectElement.options.length > 0) {
+                                const firstOption = selectElement.options[0].value;
+                                cellContent.textContent = firstOption;
+                            }
+                            else {
+                                cellContent.textContent = '';
+                            }
+                        }
+                        cell.appendChild(cellContent);
+                        newrow.appendChild(cell);
+                    }
+
+                })
+                tbody.appendChild(newrow);
+            })
+            table.appendChild(tbody);
+            tablefinal.appendChild(table);
+            popupContent.appendChild(tablefinal);
+        }
+
+        //抓取資料建檔
+        function tablefinaldata() {
+            const finaldata = [];
+            const tablefinal = document.getElementById("tablefinal");
+            const tbody = tablefinal.querySelector("tbody");
+            const row = tbody.querySelectorAll("tr");
+            row.forEach((row, index) => {
+                const Td = row.querySelectorAll("td");
+                const finaldatarow = [];
+                var platform;
+                var phase;
+                var target;
+                var group;
+                var cycle;
+                var sku;
+                var sn;
+                var position;
+                var remark;
+                Td.forEach((td, indextd) => {
+                    const tddata = td.querySelector("span");
+                    console.log(tddata.textContent);
+                    if (`${indextd}` == 0) { platform = tddata.textContent }
+                    else if (`${indextd}` == 1) { phase = tddata.textContent }
+                    else if (`${indextd}` == 2) { target = tddata.textContent }
+                    else if (`${indextd}` == 3) { group = tddata.textContent }
+                    else if (`${indextd}` == 4) { cycle = tddata.textContent }
+                    else if (`${indextd}` == 5) { sku = tddata.textContent }
+                    else if (`${indextd}` == 6) { sn = tddata.textContent }
+                    else if (`${indextd}` == 7) { position = tddata.textContent }
+                    else if (`${indextd}` == 8) { remark = tddata.textContent }
+                })
+                data = ({ platform: platform.trim(), phase: phase.trim(), target: target.trim(), group: group.trim(), cycle: cycle.trim(), sku: sku.trim(), sn: sn.trim(), position: position.trim(), remark: remark.trim() });
+                finaldata.push(data);  //push加在陣列尾巴
+            })
+            return finaldata;
+        }
+
+        function copy(rowcount) {
+            const tableContainer = document.getElementById("tableContainer");
+            const tbody = tableContainer.querySelector("tbody");
+            const row = tbody.querySelectorAll("tr");
+            var platform;
+            var phase;
+            var target;
+            var group;
+            var cycle;
+            var sku;
+            var position;
+            var remark;
+            row.forEach((row, index) => {
+                if (parseInt(index) >= rowcount) {   
+                    const Td = row.querySelectorAll("td");
+                    Td.forEach((td, indextd) => {
+                        const tddata = td.querySelector("span");
+                        const selectElement = td.querySelector("select");
+                        //console.log(tddata.textContent);
+                        if (`${index}` == rowcount) {
+                            if (`${indextd}` == 1) { platform = tddata.textContent }
+                            else if (`${indextd}` == 2) {
+                                if (selectElement.options.length > 0) {
+                                    const firstOption = selectElement.options[0].value;
+                                    phase = firstOption;
+                                }
+                                else {
+                                    phase = '';
+                                }
+                            }
+                            else if (`${indextd}` == 3) { target = tddata.textContent }
+                            else if (`${indextd}` == 4) { group = tddata.textContent }
+                            else if (`${indextd}` == 5) { cycle = tddata.textContent }
+                            else if (`${indextd}` == 6) { sku = tddata.textContent }
+                            else if (`${indextd}` == 8) { position = tddata.textContent }
+                            else if (`${indextd}` == 9) { remark = tddata.textContent }
+                        }
+                        else {
+                            if (`${indextd}` == 1) { tddata.textContent = platform }
+                            else if (`${indextd}` == 2 && phase != '') {
+                                selectElement.click();
+                                for (let i = 0; i < selectElement.options.length; i++) {
+                                    if (selectElement.options[i].value === phase) {
+                                        selectElement.options[i].selected = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (`${indextd}` == 3) { tddata.textContent = target }
+                            else if (`${indextd}` == 4) { tddata.textContent = group }
+                            else if (`${indextd}` == 5) { tddata.textContent = cycle }
+                            else if (`${indextd}` == 6) { tddata.textContent = sku }
+                            else if (`${indextd}` == 8) { tddata.textContent = position }
+                            else if (`${indextd}` == 9) { tddata.textContent = remark }
+                        }
+                    });
+                }
+            })
+        }
+
+
+
+
+
+
+
+
+
+        function checkplatformsn() {
+            const tbody = tableContainer.querySelector("tbody");
+            const Row = tbody.querySelectorAll("tr");
+            let stopIteration = true; // 增加一個標記
+            Row.forEach((row, index) => {
+                const Td = row.querySelectorAll("td");
+                Td.forEach((td, indextd) => {
+                    if (`${indextd}` == 1 || `${indextd}` == 7) {
+                        const cellContent = td.querySelector("span");
+                        if (cellContent.textContent == '') {
+                            stopIteration = false;
+                            return;  //return只會終止一個function或一個迴圈
+                        }
+                    }
+                })
+                if (!stopIteration) {
+                    return; // 使用標記來結束外部迴圈的運行
+                }
+            })
+            return stopIteration;
+        }
+
+
+    </script>
+    <script>
+        //新增機台
+        const inputForm = document.getElementById("input-form");
+
+        const inputElements = [
+            { label: "Platform", id: "platform", name: "platform" },
+            // { label: "Phase", id: "phase", name: "phase", selectOptions: phaseoption },
+            { label: "Target", id: "target", name: "target", selectOptions: targetoption },
+            { label: "Group", id: "group", name: "group", selectOptions: groupoption },
+            { label: "Cycle", id: "cycle", name: "cycle" },
+
+        ];
+
+        inputElements.forEach((input) => {
+            const div = document.createElement("div");
+            const label = document.createElement("label");
+            const inputElement = input.selectOptions   // 判別式
+                ? document.createElement("select")
+                : document.createElement("input");
+
+            label.setAttribute("for", input.id);
+            label.textContent = input.label;
+
+            if (input.selectOptions) {
+                input.selectOptions.forEach((optionText) => {
+                    const option = document.createElement("option");
+                    option.textContent = optionText;
+                    inputElement.appendChild(option);
+                });
+            }
+
+            inputElement.setAttribute("type", "text");
+            inputElement.setAttribute("id", input.id);
+            inputElement.setAttribute("name", input.name);
+            if (inputElement.id == 'platform') {
+                var platformErrorDiv = document.createElement("div");
+                platformErrorDiv.setAttribute("id", "platformError");
+                platformErrorDiv.classList.add("error");
+                div.appendChild(platformErrorDiv);
+            }
+            div.appendChild(label);
+            div.appendChild(inputElement);
+
+            inputForm.appendChild(div);
+        });
+    </script>
+
+</body>
+
+</html>
+{% load static %}

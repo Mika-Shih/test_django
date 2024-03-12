@@ -1,0 +1,323 @@
+{% load static %}
+<!DOCTYPE html>
+
+<head>
+  <style>
+    .table {
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    .table th,
+    .table td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+      box-sizing: border-box;
+      width: 100px;
+      /* 設置固定的寬度 */
+      height: 40px;
+      /* 設置固定的高度 */
+    }
+
+    .table th {
+      background-color: #f2f2f2;
+      font-size: 14px;
+    }
+
+    .table td {
+      font-size: 12px;
+    }
+
+    table tr td:nth-child(1) {
+      width: calc(12%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(2) {
+      width: calc(4%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(3) {
+      width: calc(4%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(4) {
+      width: calc(10%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(5) {
+      box-sizing: border-box;
+      width: calc(6%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(6) {
+      box-sizing: border-box;
+      width: calc(4%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(7) {
+      box-sizing: border-box;
+      width: calc(8%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(8) {
+      box-sizing: border-box;
+      width: calc(8%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(9) {
+      box-sizing: border-box;
+      width: calc(10%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(10) {
+      box-sizing: border-box;
+      width: calc(4%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(11) {
+      box-sizing: border-box;
+      width: calc(4%);
+      height: 20px;
+    }
+
+
+    table tr td:nth-child(12) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 20px;
+    }
+
+    /*彈跳視窗*/
+    .popup-container {
+      position: fixed;
+      top: 50%;
+      left: 45%;
+      right: 45%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .popup-content {
+      width: 200%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .overlay {
+      /* 反灰效果的樣式 */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      /* 調整反灰的透明度 */
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+  <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<body>
+
+  <div id="tableContainer"></div>
+
+  <button id="newplatform">發送郵件</button>
+  <div id="popupContainer" class="popup-container">
+    <div id="popupContent" class="popup-content">
+      <h2>確定新機台內容並發送郵件?</h2> <!-- 2級標籤-->
+      <div id="tablefinal"></div>
+      <button id="confirm">確定</button>
+      <button id="cancel">取消</button>
+    </div>
+  </div>
+  <div id="overlay" class="overlay"></div><!--反灰-->
+
+
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      hideLoading();
+    });
+    const tableContainer = document.getElementById("tableContainer");
+    let selectedData = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const jsonData = urlParams.get('jsonData');
+    const selectData = JSON.parse(jsonData);
+    console.log(selectData);
+    getDataAndUpdateTable(selectData);
+    // 抓數據刷新表格
+    function getDataAndUpdateTable(u) {
+      const data = u;
+      // 抓div創建表格
+      const tableContainer = document.getElementById("tableContainer");
+
+      // 清空表單
+      tableContainer.innerHTML = "";
+      // 創建表
+      const table = document.createElement("table");
+      table.classList.add("table");
+
+      // 創建表頭
+      const thead = document.createElement("thead"); //表頭
+      const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+      const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'borrower', 'status', 'position', 'remark', 'update_time'];
+
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // 創建表格主體
+      const tbody = document.createElement("tbody");
+      data.forEach((rowData, indexrow) => {
+        const row = document.createElement("tr");
+        headers.forEach(header => {
+          const cell = document.createElement("td");
+          const cellContent = document.createElement("span"); //分配每一格
+          cellContent.textContent = rowData[header];
+          cell.appendChild(cellContent);
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      tableContainer.appendChild(table);
+    }
+
+    const popupContainer = document.getElementById("popupContainer");   //樣式用 彈跳視窗
+    const popupContent = document.getElementById("popupContent");       //添加表格用
+    const overlay = document.getElementById("overlay");
+    const newplatform = document.getElementById("newplatform");
+    let isPopupOpen = false;
+    newplatform.addEventListener("click", function () {
+      if (!isPopupOpen) {
+        popupContainer.style.opacity = "1";
+        popupContainer.style.pointerEvents = "auto";
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+        isPopupOpen = true;
+      } else {
+        closePopup();
+      }
+    })
+    document.getElementById("cancel").addEventListener("click", closePopup);
+    overlay.addEventListener("click", closePopup);
+    //完成資料建檔
+    document.getElementById("confirm").addEventListener("click", function () {
+      showLoading();
+      console.log(tableContainer);
+      const finaldata = tablefinaldata()
+      console.log(finaldata);
+      axios.post('/polls/send_mail_newplatform/', finaldata)
+        .then(function (response) {
+          console.log(response.status)
+          if (response.data.redirect_url) {
+            window.location.replace(response.data.redirect_url);
+          }
+          else if (response.data.error) {
+            console.log(response.data.error);
+            alert(response.data.error);
+          }
+        })
+        .catch(error => {
+          alert("儲存失敗");
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+      closePopup();
+    });
+
+    function closePopup() {
+      popupContainer.style.opacity = "0";
+      popupContainer.style.pointerEvents = "none";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      isPopupOpen = false;
+    }
+
+    //抓取資料建檔
+    function tablefinaldata() {
+      const finaldata = [];
+      const tableContainer = document.getElementById("tableContainer");
+      const tbody = tableContainer.querySelector("tbody");
+      const row = tbody.querySelectorAll("tr");
+      row.forEach((row, index) => {
+        const Td = row.querySelectorAll("td");
+        const finaldatarow = [];
+        var platform;
+        var phase;
+        var target;
+        var group;
+        var cycle;
+        var sku;
+        var sn;
+        var borrower;
+        var status;
+        var position;
+        var remark;
+        var update_time;
+        Td.forEach((td, indextd) => {
+          const tddata = td.querySelector("span");
+          //console.log(tddata.textContent);
+          if (`${indextd}` == 0) { platform = tddata.textContent }
+          else if (`${indextd}` == 1) { phase = tddata.textContent }
+          else if (`${indextd}` == 2) { target = tddata.textContent }
+          else if (`${indextd}` == 3) { group = tddata.textContent }
+          else if (`${indextd}` == 4) { cycle = tddata.textContent }
+          else if (`${indextd}` == 5) { sku = tddata.textContent }
+          else if (`${indextd}` == 6) { sn = tddata.textContent }
+          else if (`${indextd}` == 7) { borrower = tddata.textContent }
+          else if (`${indextd}` == 8) { status = tddata.textContent }
+          else if (`${indextd}` == 9) { position = tddata.textContent }
+          else if (`${indextd}` == 10) { remark = tddata.textContent }
+          else if (`${indextd}` == 11) { update_time = tddata.textContent }
+        })
+        data = ({ platform: platform.trim(), phase: phase.trim(), target: target.trim(), group: group.trim(), cycle: cycle.trim(), sku: sku.trim(), sn: sn.trim(), borrower: borrower.trim(), status: status.trim(), position: position.trim(), remark: remark.trim(), update_time: update_time.trim() });
+        finaldata.push(data);  //push加在陣列尾巴
+      })
+      return finaldata;
+    }
+  </script>
+</body>
+
+</html>
+{% load static %}

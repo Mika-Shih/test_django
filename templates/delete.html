@@ -1,0 +1,406 @@
+{% load static %}
+<!DOCTYPE html>
+
+<head>
+  <style>
+    .table,
+    .newtable {
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    .table th,
+    .table td,
+    .newtable th,
+    .newtable td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+      box-sizing: border-box;
+      width: 100px;
+      /* 設置固定的寬度 */
+      height: 40px;
+      /* 設置固定的高度 */
+    }
+
+    .table th,
+    .newtable th {
+      background-color: #f2f2f2;
+      font-size: 14px;
+    }
+
+    .table td,
+    .newtable td {
+      font-size: 12px;
+    }
+
+    .table tr td:nth-child(1) {
+      width: calc(2%);
+    }
+
+    .table tr td:nth-child(2),
+    .newtable tr td:nth-child(1) {
+      width: calc(18%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(3),
+    .newtable tr td:nth-child(2) {
+      width: calc(10%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(4),
+    .newtable tr td:nth-child(3) {
+      width: calc(8%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(5),
+    .newtable tr td:nth-child(4) {
+      width: calc(12%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(6),
+    .newtable tr td:nth-child(5) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(7),
+    .newtable tr td:nth-child(6) {
+      box-sizing: border-box;
+      width: calc(8%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(8),
+    .newtable tr td:nth-child(7) {
+      box-sizing: border-box;
+      width: calc(12%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(9),
+    .newtable tr td:nth-child(8) {
+      box-sizing: border-box;
+      width: calc(8%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(10),
+    .newtable tr td:nth-child(9) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(11),
+    .newtable tr td:nth-child(10) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(12),
+    .newtable tr td:nth-child(11) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(13),
+    .newtable tr td:nth-child(12) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(14),
+    .newtable tr td:nth-child(13) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    td {
+      position: relative;
+      /*相對位置布局 沒有則下拉框會不見*/
+    }
+
+    .input[type="text"] {
+      width: 75%;
+    }
+
+    .select {
+      width: 90%;
+    }
+
+
+    .pagination {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .pagination li {
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    .pagination li a {
+      display: block;
+      padding: 6px 10px;
+      text-decoration: none;
+      background-color: #f2f2f2;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .pagination li.current a {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .data-display {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      /* 將 top 設置為 100% 以覆蓋容器 */
+      width: fit-content;
+      /* 設置 */
+      width: 220%;
+      max-height: 200px;
+      overflow: auto;
+      background-color: #ffffff;
+      border: 1px solid #cccccc;
+      padding: 5px;
+      z-index: 2;
+      /* 設置較高的 z-index 值 */
+    }
+
+    .data-display span {
+      display: block;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    .data-display span:hover {
+      background-color: #f2f2f2;
+      /* 鼠標懸停時的背景顏色 */
+    }
+
+    /*彈跳視窗*/
+    .deletecontainer {
+      position: fixed;
+      top: 50%;
+      left: 30%;
+      right: 30%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .deletecontent {
+      width: 200%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .overlay {
+      /* 反灰效果的樣式 */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      /* 調整反灰的透明度 */
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+  <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<body>
+  <div id="tableContainer"></div>
+  <button id="deletegroup">批量刪除</button>
+  <div id="popupdeleteContainer" class="deletecontainer">
+    <div id="popupdeleteContent" class="deletecontent">
+      <h2>確定刪除該筆資料?</h2> <!-- 2級標籤-->
+      <div id="tabledelete"></div>
+      <button id="deleteconfirm">確定</button>
+      <button id="deletecancel">取消</button>
+    </div>
+  </div>
+  <div id="overlay" class="overlay"></div><!--反灰-->
+
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      hideLoading();
+    });
+    const tableContainer = document.getElementById("tableContainer");
+    let selectedData = [];
+    const selectData = JSON.parse('{{ json_data|safe }}');
+    console.log(selectData);
+    getDataAndUpdateTable(selectData);
+
+    // 抓數據刷新表格
+    function getDataAndUpdateTable(data) {
+      // 抓div創建表格
+      const tableContainer = document.getElementById("tableContainer");
+      // 清空表單
+      tableContainer.innerHTML = "";
+      // 創建表
+      const table = document.createElement("table");
+      table.classList.add("table");
+
+      // 創建表頭
+      const thead = document.createElement("thead"); //表頭
+      const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+      const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'borrower', 'status', 'position', 'remark', 'update_time'];
+      //headers = document.getElementById("headers");
+      //console.log(headers)
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // 創建表格主體
+      const tbody = document.createElement("tbody");
+      data.forEach((rowData, indexrow) => {
+        const row = document.createElement("tr");
+
+        headers.forEach(header => {
+          const cell = document.createElement("td");
+          const cellContent = document.createElement("span"); //分配每一格
+          cellContent.textContent = rowData[header];
+          cell.appendChild(cellContent);
+          row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      tableContainer.appendChild(table);
+    }
+
+    const popupdeleteContainer = document.getElementById("popupdeleteContainer");
+    const popupdeleteContent = document.getElementById("popupdeleteContent");
+    const overlay = document.getElementById("overlay");
+    const deletegroup = document.getElementById("deletegroup");
+    let isPopupOpen = false;
+
+    deletegroup.addEventListener("click", function () {
+      if (!isPopupOpen) {
+        popupdeleteContainer.style.opacity = "1";
+        popupdeleteContainer.style.pointerEvents = "auto";
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+        isPopupOpen = true;
+      } else {
+        closePopup();
+      }
+    });
+
+    document.getElementById("deleteconfirm").addEventListener("click", function () {
+      showLoading();
+      const finaldata = tablefinaldata();
+      axios.post('/polls/deleteplatform/', finaldata)
+        .then(function (response) {
+          if (response.data.redirect_url) {
+            window.location.replace(response.data.redirect_url);
+          }
+          else if (response.data.error) {
+            console.log(response.data.error);
+            alert(response.data.error);
+          }
+        })
+        .catch(error => {
+          alert("儲存失敗");
+          console.error(error);
+        })
+        .finally(() => {
+          hideLoading();
+        });
+      closePopup();
+    });
+
+    document.getElementById("deletecancel").addEventListener("click", closePopup);
+    overlay.addEventListener("click", closePopup);
+
+    function closePopup() {
+      popupdeleteContainer.style.opacity = "0";
+      popupdeleteContainer.style.pointerEvents = "none";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      isPopupOpen = false;
+    }
+
+    function tablefinaldata() {
+      const finaldata = [];
+      const tableContainer = document.getElementById("tableContainer");
+      const tbody = tableContainer.querySelector("tbody");
+      const row = tbody.querySelectorAll("tr");
+      row.forEach((row, index) => {
+        const Td = row.querySelectorAll("td");
+        const finaldatarow = [];
+        var platform;
+        var phase;
+        var target;
+        var group;
+        var cycle;
+        var sku;
+        var sn;
+        var borrower;
+        var status;
+        var position;
+        var remark;
+        var update_time;
+        Td.forEach((td, indextd) => {
+          const tddata = td.querySelector("span");
+          console.log(tddata.textContent);
+          if (`${indextd}` == 0) { platform = tddata.textContent }
+          else if (`${indextd}` == 1) { phase = tddata.textContent }
+          else if (`${indextd}` == 2) { target = tddata.textContent }
+          else if (`${indextd}` == 3) { group = tddata.textContent }
+          else if (`${indextd}` == 4) { cycle = tddata.textContent }
+          else if (`${indextd}` == 5) { sku = tddata.textContent }
+          else if (`${indextd}` == 6) { sn = tddata.textContent }
+          else if (`${indextd}` == 7) { borrower = tddata.textContent }
+          else if (`${indextd}` == 8) { status = tddata.textContent }
+          else if (`${indextd}` == 9) { position = tddata.textContent }
+          else if (`${indextd}` == 10) { remark = tddata.textContent }
+          else if (`${indextd}` == 11) { update_time = tddata.textContent }
+        })
+        data = ({ platform: platform.trim(), phase: phase.trim(), target: target.trim(), group: group.trim(), cycle: cycle.trim(), sku: sku.trim(), sn: sn.trim(), borrower: borrower.trim(), status: status.trim(), position: position.trim(), remark: remark.trim(), update_time: update_time.trim() });
+        finaldata.push(data);  //push加在陣列尾巴
+      })
+      return finaldata;
+    }
+  </script>
+</body>
+
+</html>
+{% load static %}

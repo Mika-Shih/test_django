@@ -1,0 +1,308 @@
+{% load static %}
+<!DOCTYPE html>
+
+<head>
+    <style>
+        .table,
+        .table_record {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+
+        .table th,
+        .table td,
+        .table_record th,
+        .table_record td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        .table th,
+        .table_record th {
+            background-color: #f2f2f2;
+            font-size: 14px;
+        }
+
+        .table td,
+        .table_record td {
+            font-size: 12px;
+        }
+
+        .table tr {
+            max-height: 20px;
+            min-height: 20px;
+        }
+
+        .table_record tr {
+            max-height: 40px;
+            min-height: 40px;
+        }
+
+        .table tr td:nth-child(1),
+        .table tr th:nth-child(1) {
+            min-width: 30px;
+            max-width: 30px;
+        }
+
+        .table tr td:nth-child(2),
+        .table tr th:nth-child(2) {
+            min-width: 20px;
+            max-width: 20px;
+        }
+
+        .table tr td:nth-child(3),
+        .table tr th:nth-child(3) {
+            min-width: 20px;
+            max-width: 20px;
+        }
+
+        .table tr td:nth-child(4),
+        .table tr th:nth-child(4) {
+            min-width: 30px;
+            max-width: 30px;
+        }
+
+        .table tr td:nth-child(5),
+        .table tr th:nth-child(5) {
+            min-width: 30px;
+            max-width: 30px;
+        }
+
+        .table tr td:nth-child(6),
+        .table tr th:nth-child(6) {
+            min-width: 10px;
+            max-width: 10px;
+        }
+
+        .table tr td:nth-child(7),
+        .table tr th:nth-child(7) {
+            min-width: 40px;
+            max-width: 40px;
+        }
+
+
+        .table_record tr td:nth-child(1),
+        .table_record tr th:nth-child(1) {
+            min-width: 200px;
+            max-width: 200px;
+
+        }
+
+        .table_record tr td:nth-child(2),
+        .table_record tr th:nth-child(2) {
+            min-width: 100px;
+            max-width: 100px;
+
+        }
+
+        .table_record tr td:nth-child(3),
+        .table_record tr th:nth-child(3) {
+            min-width: 100px;
+            max-width: 100px;
+
+        }
+
+        .table_record tr td:nth-child(4),
+        .table_record tr th:nth-child(4) {
+            min-width: 100px;
+            max-width: 100px;
+
+        }
+
+        .table_record tr td:nth-child(5),
+        .table_record tr th:nth-child(5) {
+            min-width: 305px;
+            max-width: 305px;
+
+        }
+
+        .table tr,
+        .table_record tr {
+            word-wrap: break-word;
+            /*自動換行*/
+            white-space: normal;
+            /*允許換行*/
+        }
+
+        .headers {
+            position: sticky;
+            left: 0;
+            top: 0;
+            background-color: white;
+            /* 可選 為了使列在最上方顯示 */
+        }
+
+        /* 表頭容器 */
+        #tableHeaderContainer {
+            position: sticky;
+            top: 0;
+            background-color: #f0f0f0;
+            z-index: 1;
+            min-width: 875px;
+            max-width: 875px;
+        }
+
+        /* 數據容器 */
+        #tableDataContainer {
+            max-height: 481px;
+            overflow-y: auto;
+            min-width: 875px;
+            max-width: 875px;
+        }
+
+        #tableContainer {
+            min-width: 1000px;
+            max-width: 1000px;
+            max-height: 120px;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'polls/css/loading.css' %}">
+    <script src="{% static 'polls/js/loading.js' %}"></script>
+</head>
+
+<body>
+    <div id="tableContainer"></div>
+    <br>
+    <br>
+    <br>
+    <div id="table_record">
+        <div class="table-header" id="tableHeaderContainer"></div>
+        <div class="table-data" id="tableDataContainer"></div>
+    </div>
+
+    <div class="loading"></div>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            hideLoading();
+        });
+        const tableContainer = document.getElementById("tableContainer");
+        let selectedData = [];
+
+        mainfunction();
+        async function mainfunction() {
+            const selectData = JSON.parse('{{ json_data|safe }}');
+            console.log(selectData);
+            console.log(selectData.jsonData);
+            const iur_data = await serial_number_data_get(selectData.jsonData);
+            getDataAndUpdateTable([iur_data[0]]);
+            get_table_record(iur_data);
+        }
+
+        function getDataAndUpdateTable(data) {
+            console.log(data);
+            const tableContainer = document.getElementById("tableContainer");
+            tableContainer.innerHTML = "";
+            const table = document.createElement("table");
+            table.classList.add("table");
+            // 創建表頭
+            const thead = document.createElement("thead"); //表頭
+            const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+            const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn'];
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // 創建表格主體
+            const tbody = document.createElement("tbody");
+            data.forEach(rowData => {
+                const row = document.createElement("tr");
+
+                headers.forEach(header => {
+                    const cell = document.createElement("td");
+                    const cellContent = document.createElement("span"); //分配每一格
+                    cellContent.textContent = rowData[header];
+                    cell.appendChild(cellContent);
+                    row.appendChild(cell);
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+        }
+
+        // 抓數據刷新表格
+        function get_table_record(data) {
+            const table_record = document.getElementById("table_record");
+            const tableHeaderContainer = document.getElementById("tableHeaderContainer");
+            const tableDataContainer = document.getElementById("tableDataContainer");
+            // 清空表單
+            tableHeaderContainer.innerHTML = "";
+            tableDataContainer.innerHTML = "";
+            // 創建表
+            const table = document.createElement("table");
+            table.classList.add("table_record");
+
+            // 創建表頭
+            const thead = document.createElement("thead"); //表頭
+            const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+            const selectAllTh = document.createElement("th");
+
+            const headers = ['borrower', 'status', 'position', 'remark', 'update_time'];
+
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+            tableHeaderContainer.appendChild(thead);
+            table.appendChild(tableHeaderContainer);
+            // 創建表格主體
+            const tbody = document.createElement("tbody");
+            data.forEach(rowData => {
+                const row = document.createElement("tr");
+                headers.forEach(header => {
+                    const cell = document.createElement("td");
+                    const cellContent = document.createElement("span"); //分配每一格
+                    cellContent.textContent = rowData[header];
+                    cell.appendChild(cellContent);
+                    row.appendChild(cell);
+                });
+                tbody.appendChild(row);
+            });
+            tableDataContainer.appendChild(tbody);
+            table.appendChild(tableDataContainer);
+            table_record.appendChild(table);
+        }
+
+        async function serial_number_data_get(serial_number) {
+            try {
+                const response = await axios.post('/polls/machine_record/', { 'sn': serial_number });
+                const data = response.data.iur_data.map(item => {
+                    return {
+                        ...item,
+                        'update_time': formatTimeForFrontend(item['update_time']),
+                    };
+                });
+                return data;
+            } catch (error) {
+                console.error('請求失敗 請聯繫管理員', error);
+                throw error; //捕獲錯誤 程序會中斷
+            }
+        }
+        function formatTimeForFrontend(inputTime) {
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const date = new Date(inputTime);
+            const month = months[date.getMonth()];
+            const day = date.getDate();
+            const year = date.getFullYear();
+            const formattedTime = date.toLocaleString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
+
+            return `${month} ${day}, ${year}, ${formattedTime}`;
+        }
+
+    </script>
+</body>
+
+</html>
+{% load static %}

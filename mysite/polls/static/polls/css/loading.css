@@ -1,0 +1,39 @@
+/* loading.css */
+
+.loading {
+    position: absolute;
+    /* 改用 fixed 定位，以在整個視窗中置中 */
+    right: 0;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, .65);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.loading::after {
+    position: absolute;
+    content: "";
+    height: 48px;
+    width: 48px;
+    display: block;
+    border: 2px solid white;
+    /*z-index: 9999;*/
+    border-radius: 48px;
+    border-right-color: transparent;
+    animation: infinite rotate .5s linear;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

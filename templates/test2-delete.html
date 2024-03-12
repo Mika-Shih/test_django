@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+
+<head>
+  <style>
+    .table,
+    .newtable {
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    .table th,
+    .table td,
+    .newtable th,
+    .newtable td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+      box-sizing: border-box;
+      width: 100px;
+      /* 設置固定的寬度 */
+      height: 40px;
+      /* 設置固定的高度 */
+    }
+
+    .table th,
+    .newtable th {
+      background-color: #f2f2f2;
+      font-size: 14px;
+    }
+
+    .table td,
+    .newtable td {
+      font-size: 12px;
+    }
+
+    .table tr td:nth-child(1) {
+      width: calc(2%);
+    }
+
+    .table tr td:nth-child(2),
+    .newtable tr td:nth-child(1) {
+      width: calc(18%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(3),
+    .newtable tr td:nth-child(2) {
+      width: calc(10%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(4),
+    .newtable tr td:nth-child(3) {
+      width: calc(8%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(5),
+    .newtable tr td:nth-child(4) {
+      width: calc(12%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(6),
+    .newtable tr td:nth-child(5) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(7),
+    .newtable tr td:nth-child(6) {
+      box-sizing: border-box;
+      width: calc(8%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(8),
+    .newtable tr td:nth-child(7) {
+      box-sizing: border-box;
+      width: calc(12%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(9),
+    .newtable tr td:nth-child(8) {
+      box-sizing: border-box;
+      width: calc(8%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(10),
+    .newtable tr td:nth-child(9) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(11),
+    .newtable tr td:nth-child(10) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(12),
+    .newtable tr td:nth-child(11) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(13),
+    .newtable tr td:nth-child(12) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    .table tr td:nth-child(14),
+    .newtable tr td:nth-child(13) {
+      box-sizing: border-box;
+      width: calc(15%);
+      height: 40px;
+    }
+
+    td {
+      position: relative;
+      /*相對位置布局 沒有則下拉框會不見*/
+    }
+
+    .input[type="text"] {
+      width: 75%;
+    }
+
+    .select {
+      width: 90%;
+    }
+
+
+    .pagination {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .pagination li {
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    .pagination li a {
+      display: block;
+      padding: 6px 10px;
+      text-decoration: none;
+      background-color: #f2f2f2;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .pagination li.current a {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .data-display {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      /* 將 top 設置為 100% 以覆蓋容器 */
+      width: fit-content;
+      /* 設置 */
+      width: 220%;
+      max-height: 200px;
+      overflow: auto;
+      background-color: #ffffff;
+      border: 1px solid #cccccc;
+      padding: 5px;
+      z-index: 2;
+      /* 設置較高的 z-index 值 */
+    }
+
+    .data-display span {
+      display: block;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    .data-display span:hover {
+      background-color: #f2f2f2;
+      /* 鼠標懸停時的背景顏色 */
+    }
+
+    /*彈跳視窗*/
+    .deletecontainer {
+      position: fixed;
+      top: 50%;
+      left: 30%;
+      right: 30%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .deletecontent {
+      width: 200%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .overlay {
+      /* 反灰效果的樣式 */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      /* 調整反灰的透明度 */
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="tableContainer"></div>
+  <button id="deletegroup">批量刪除</button>
+  <div id="popupdeleteContainer" class="deletecontainer">
+    <div id="popupdeleteContent" class="deletecontent">
+      <h2>確定刪除該筆資料?</h2> <!-- 2級標籤-->
+      <div id="tabledelete"></div>
+      <button id="deleteconfirm">確定</button>
+      <button id="deletecancel">取消</button>
+    </div>
+  </div>
+  <div id="overlay" class="overlay"></div><!--反灰-->
+
+
+
+  <script>
+    const tableContainer = document.getElementById("tableContainer");
+    let selectedData = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const jsonData = urlParams.get('jsonData');
+    const selectData = JSON.parse(jsonData);
+    console.log(selectData);
+    getDataAndUpdateTable(selectData);
+
+    // 抓數據刷新表格
+    function getDataAndUpdateTable(u) {
+      const data = u;
+      // 抓div創建表格
+      const tableContainer = document.getElementById("tableContainer");
+      // 清空表單
+      tableContainer.innerHTML = "";
+      // 創建表
+      const table = document.createElement("table");
+      table.classList.add("table");
+
+      // 創建表頭
+      const thead = document.createElement("thead"); //表頭
+      const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+
+      // 創建全選框
+      const selectAllCheckbox = document.createElement("input");
+      selectAllCheckbox.type = "checkbox";
+      selectAllCheckbox.id = "selectAllCheckbox";
+      selectAllCheckbox.addEventListener("change", function () {
+        const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']"); //每個列的框框
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = selectAllCheckbox.checked; // 將每個 checkbox 的狀態調整為全選框一致
+
+          const rowData = getRowDataFromCheckbox(checkbox);
+
+          if (checkbox.checked) {
+            const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (!isDuplicate) {
+              selectedData.push(rowData); // 將選中的資料加入 selectedData 陣列
+            }
+          } else {
+            const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (index > -1) {
+              selectedData.splice(index, 1); // 從 selectedData 陣列中移除取消選中的資料
+            }
+          }
+        });
+        console.log(selectedData);
+      });
+
+      const selectAllTh = document.createElement("th");
+      selectAllTh.appendChild(selectAllCheckbox);
+      headerRow.appendChild(selectAllTh);
+
+      const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'borrower', 'status', 'position', 'remark', 'update_time'];
+      //headers = document.getElementById("headers");
+      //console.log(headers)
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+
+      const active = document.createElement("th");
+      active.textContent = "active"
+      headerRow.appendChild(active);
+      thead.appendChild(headerRow);
+
+      table.appendChild(thead);
+
+      // 創建表格主體
+      const tbody = document.createElement("tbody");
+      data.forEach((rowData, indexrow) => {
+        const row = document.createElement("tr");
+
+        // 創建行複選框
+        const rowCheckbox = document.createElement("input");
+        rowCheckbox.type = "checkbox";
+        rowCheckbox.dataset.row = "checkbox";
+        rowCheckbox.addEventListener("change", function () {
+          rowData = getRowDataFromCheckbox(rowCheckbox);
+          if (rowCheckbox.checked) {  //check就是選中
+            const isDuplicate = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData));
+            if (!isDuplicate) {
+              selectedData.push(rowData); // 將選中的資料加入 selectedData 陣列
+            }
+          } else {
+            const index = selectedData.findIndex(item => JSON.stringify(item) === JSON.stringify(rowData));  //findindex查找方法  如果(index > -1)則表示有找到
+            if (index > -1) {
+              selectedData.splice(index, 1);  //這裡的1為索引到的1個  splice移除
+            }
+          }
+          const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+          const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+          selectAllCheckbox.checked = allChecked;
+          console.log(selectedData);
+        });
+
+        const selectRowTd = document.createElement("td");
+        selectRowTd.appendChild(rowCheckbox);
+        row.appendChild(selectRowTd);
+
+        headers.forEach(header => {
+          const cell = document.createElement("td");
+          const cellContent = document.createElement("span"); //分配每一格
+          cellContent.textContent = rowData[header];
+          cell.appendChild(cellContent);
+          row.appendChild(cell);
+        });
+        //刪除按鈕
+        const deletebutton = document.createElement("button");
+        deletebutton.textContent = "delete";
+        deletebutton.addEventListener("click", function () {
+          deleterowData.push(rowData);
+          console.log(deleterowData);
+          checkdeletetable(`${indexrow}`);
+          console.log(`${indexrow}`);
+          if (!isPopupOpen) {
+            popupdeleteContainer.style.opacity = "1";
+            popupdeleteContainer.style.pointerEvents = "auto";
+            overlay.style.opacity = "1";
+            overlay.style.pointerEvents = "auto";
+            isPopupOpen = true;
+          } else {
+            closePopup();
+          }
+        });
+
+        row.appendChild(deletebutton);
+        // 添加額外的 span 元素來實現水平排放
+        const buttonContainer = document.createElement("span");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.gap = "10px";
+        buttonContainer.appendChild(deletebutton);
+
+        const actionCell = document.createElement("td");
+        actionCell.appendChild(buttonContainer);
+        row.appendChild(actionCell);
+        console.log(row);
+        tbody.appendChild(row);
+      });
+      table.appendChild(tbody);
+      tableContainer.appendChild(table);
+      //進入表格後 自動勾選
+      const checkboxes = tableContainer.querySelectorAll("input[type='checkbox'][data-row='checkbox']:not(#selectAllCheckbox)");
+      let trueCount = 0;
+      checkboxes.forEach(checkbox => {
+        const rowData = getRowDataFromCheckbox(checkbox);
+        const isSelected = selectedData.some(item => JSON.stringify(item) === JSON.stringify(rowData)); //一行一行檢查 主框是rowData
+        checkbox.checked = isSelected; //假設右邊是true 則左勾選
+        if (isSelected) { trueCount++; } // 如果 isSelected 為 true，計數器加一
+      });
+      selectAllCheckbox.checked = checkboxes.length === trueCount;
+    }
+
+    function getRowDataFromCheckbox(checkbox) {
+      const row = checkbox.closest('tr');
+      const rowData = {};
+
+      const cells = row.querySelectorAll('td');
+      const headers = Array.from(tableContainer.querySelectorAll('th')).map(th => th.textContent);
+
+      cells.forEach((cell, index) => {
+        const header = headers[index];
+        const value = cell.textContent.trim(); // 移除前後空白
+        if (header !== '') { // 排除空白的鍵名
+          rowData[header] = value;
+        }
+      });
+      return rowData;
+    }
+
+  </script>
+  <script>
+    const popupdeleteContainer = document.getElementById("popupdeleteContainer");
+    const popupdeleteContent = document.getElementById("popupdeleteContent");
+    const overlay = document.getElementById("overlay");
+    let isPopupOpen = false;
+
+    document.getElementById("deleteconfirm").addEventListener("click", function () {
+      tabledeleterow(checkdeleterow);
+      //data = ({ platform: platform.trim(), phase: phase.trim(), target: target.trim(), group: group.trim(), cycle: cycle.trim(), sku: sku.trim(), sn: sn.trim(), borrower: borrower.trim(), status: status.trim(), position: position.trim(), remark: remark.trim(), update_time: update_time.trim() });
+      const finaldata = JSON.stringify([deleterowData[deleterowData.length - 1]])  //JSON要{}括號區隔數據捆組 []為整捆
+      console.log(finaldata);
+      fetch(`/polls/api/deleteplatform?finaldata=${finaldata}`)
+        .then(response => response.json())
+        .then(data => {
+          alert("完成");
+        })
+        .catch(error => {
+          alert("儲存失敗");
+          console.error(error);
+        });
+      deleterowData = [];  
+      closePopup();
+    });
+
+    document.getElementById("deletecancel").addEventListener("click", closePopup);
+    overlay.addEventListener("click", closePopup);
+
+    function closePopup() {
+      popupdeleteContainer.style.opacity = "0";
+      popupdeleteContainer.style.pointerEvents = "none";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      isPopupOpen = false;
+    }
+
+    var checkdeleterow;
+    function checkdeletetable(deleterow) {
+      const tableContainer = document.getElementById("tableContainer");
+      const oldtbody = tableContainer.querySelector("tbody");
+      const oldRow = oldtbody.querySelectorAll("tr");
+
+      const tabledelete = document.getElementById("tabledelete");
+      // 清空表單
+      tabledelete.innerHTML = "";
+      // 創建表
+      const table = document.createElement("table");
+      table.classList.add("newtable");
+      // 創建表頭
+      const thead = document.createElement("thead"); //表頭
+      const headerRow = document.createElement("tr"); //tr換列 th掌管行 td格
+      const headers = ['platform', 'phase', 'target', 'group', 'cycle', 'sku', 'sn', 'borrower', 'status', 'position', 'remark', 'update_time'];
+      headers.forEach(header => {
+        const th = document.createElement("th");
+        th.textContent = header;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+      const tbody = document.createElement("tbody");
+
+      oldRow.forEach((row, indexrow) => {
+        if (`${indexrow}` == deleterow) {
+          const newrow = document.createElement("tr");
+          const Td = row.querySelectorAll("td");
+          Td.forEach((td, indextd) => {
+            if ((`${indextd}` > 0) && (`${indextd}` < 13)) {
+              const cell = document.createElement("td");
+              const cellContent = document.createElement("span");
+              if (td.querySelector("span")) {
+                const oldtd = td.querySelector("span");
+                cellContent.textContent = oldtd.textContent;
+              }
+              else if (td.querySelector("select")) {
+                const selectElement = td.querySelector("select");
+                if (selectElement.options.length > 0) {
+                  const firstOption = selectElement.options[0].value;
+                  cellContent.textContent = firstOption;
+                }
+                else {
+                  cellContent.textContent = '';
+                }
+              }
+              cell.appendChild(cellContent);
+              newrow.appendChild(cell);
+            }
+          })
+          tbody.appendChild(newrow);
+        }
+      })
+      table.appendChild(tbody);
+      tabledelete.appendChild(table);
+      popupdeleteContent.appendChild(tabledelete);
+      checkdeleterow = deleterow;
+    }
+    let deleterowData = []; //const不能重新賦值
+    function tabledeleterow(deleterow) {
+      const tableContainer = document.getElementById("tableContainer");
+      const tbody = tableContainer.querySelector("tbody");
+      const Row = tbody.querySelectorAll("tr");
+      Row.forEach((row, indexrow) => {
+        if (`${indexrow}` == deleterow) {
+          const index = selectData.indexOf(deleterowData);
+          selectData.splice(index, 1);
+          getDataAndUpdateTable(selectData);
+          console.log(selectData);
+        }
+      })
+    }
+  </script>
+</body>
+
+</html>

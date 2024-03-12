@@ -1,0 +1,152 @@
+<html>
+
+<head>
+    <style type="text/css">
+        .tg {
+            border-collapse: collapse;
+            border-color: #ccc;
+            border-spacing: 0;
+        }
+
+        .tg td {
+            background-color: #fff;
+            border-color: #ccc;
+            border-style: solid;
+            border-width: 1px;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            overflow: hidden;
+            padding: 3px 20px;
+            word-break: normal;
+        }
+
+        .tg th {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+            border-style: solid;
+            border-width: 1px;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+            overflow: hidden;
+            padding: 3px 20px;
+            word-break: normal;
+        }
+
+        .tg .tg-p0uq {
+            background-color: #ffffff;
+            font-weight: bold;
+            position: -webkit-sticky;
+            position: sticky;
+            text-align: center;
+            top: -1px;
+            vertical-align: top;
+            will-change: transform
+        }
+
+        .tg .tg-9upd {
+            background-color: #ffffff;
+            border-color: inherit;
+            font-weight: bold;
+            position: -webkit-sticky;
+            position: sticky;
+            text-align: center;
+            top: -1px;
+            vertical-align: top;
+            will-change: transform
+        }
+
+        .tg .tg-6sgx {
+            background-color: #ffffff;
+            text-align: left;
+            vertical-align: top
+        }
+
+        .tg .tg-gaf0 {
+            background-color: #ecf4ff;
+        }
+    </style>
+</head>
+
+<body>
+    Hi all:
+
+    <p>The following is the update record of IUR, thanks.</p>
+
+    {% if message %}
+    <p>{{ message }}</p>
+    <br>
+    {% endif %}
+
+    {% if att_files %}
+    <p>Following attachments, please download if you need:</p>
+    {% for file_name,file_url in att_files %}
+    <a href="{{file_url}}">{{file_name}}</a><br>
+    {% endfor %}
+    <br>
+    {% endif %}
+    <table class="tg">
+        <thead>
+            <tr>
+                <th class="tg-9upd">id</th>
+                <th class="tg-9upd">platform</th>
+                <th class="tg-9upd">phase</th>
+                <th class="tg-9upd">sku</th>
+                <th class="tg-9upd">sn</th>
+                <th class="tg-9upd">borrower</th>
+                <th class="tg-9upd">purpose</th>
+                <th class="tg-9upd">borrow date</th>
+                <th class="tg-p0uq">return date</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% if borrow_records %}
+            <tr>
+                <td class="tg-gaf0" colspan="9">Borrow UUTs</td>
+            </tr>
+            {% for r in borrow_records %}
+            <tr>
+                <td class="tg-6sgx">{{ r.id }}</td>
+                <td class="tg-6sgx">{{ r.platform }}</td>
+                <td class="tg-6sgx">{{ r.phase }}</td>
+                <td class="tg-6sgx">{{ r.sku }}</td>
+                <td class="tg-6sgx">{{ r.sn }}</td>
+                <td class="tg-6sgx">{{ r.borrower_id }}</td>
+                <td class="tg-6sgx">{{ r.purpose }}</td>
+                <td class="tg-6sgx">{{ r.rent_time  }}</td>
+                <td class="tg-6sgx">{{ r.back_time }}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+
+            {% if return_records %}
+            <tr>
+                <td class="tg-gaf0" colspan="9">Return UUTs</td>
+            </tr>
+            {% for r in return_records %} <!--r代表字典的列表-->
+            <tr>
+                <td class="tg-6sgx">{{ r.id }}</td>
+                <td class="tg-6sgx">{{ r.platform }}</td>
+                <td class="tg-6sgx">{{ r.phase }}</td>
+                <td class="tg-6sgx">{{ r.sku }}</td>
+                <td class="tg-6sgx">{{ r.sn }}</td>
+                <td class="tg-6sgx">{{ r.borrower_id }}</td>
+                <td class="tg-6sgx">{{ r.purpose }}</td>
+                <td class="tg-6sgx">{{ r.rent_time }}</td>
+                <td class="tg-6sgx">{{ r.back_time }}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+
+        </tbody>
+    </table>
+    <br>
+    Regards<br>
+    {{ sender }}
+
+</body>
+
+</html>
