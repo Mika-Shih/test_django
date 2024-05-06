@@ -1,16 +1,20 @@
 from shareplum import Site
 from shareplum import Office365
 from shareplum.site import Version
-from O365 import Account, FileSystemTokenBackend, MSGraphProtocol
-import requests
-from requests.auth import HTTPBasicAuth
+from O365 import Account
+from django.db import connection
+import json
 from O365.utils import BaseTokenBackend
 import os, sys
 from pathlib import Path
 #file_path = "C:/Users/CHBI965/Desktop/0.xlsx"
-SERVER_HOST_NAME = "env-lab.eba-jpevj6xq.ap-southeast-1.elasticbeanstalk.com"
+# SERVER_HOST_NAME = "env-lab.eba-jpevj6xq.ap-southeast-1.elasticbeanstalk.com"
+def with_db_connection(func):
+    def wrapper(*args, **kwargs):
+        with connection.cursor() as cursor:
+            return func(cursor, *args, **kwargs)
+    return wrapper
 class JustToken(BaseTokenBackend):
-
     def __init__(self):
         super().__init__()
 
@@ -25,50 +29,46 @@ class JustToken(BaseTokenBackend):
     def check_token(self):
         return self.token is not None
 
-class sharepoint:
-    def __init__(self):
+class token_prove:
+    def __init__(self, user):
         #self.account = Account(credentials=credentials, token_backend=token_backend)
-        self.__set_token_database_config()
+        self.user = user
         self.token_backend = self.get_token_backend()
         self.token = self.token_backend.load_token()
         self.account = self.get_account
-    def __set_token_database_config(self):
-        self.server = SERVER_HOST_NAME
-        self.token_url = f'http://{self.server}/api/mstoken/6'
 
     @property
-    def get_credential(self):
-        try:
-            token_url = f'http://{self.server}/api/mstoken/6'
-            token_data = requests.get(token_url)
-            credentials = None
-            if token_data.status_code == 200:
-                token_data = token_data.json()
-                credentials = (token_data['credentials']['appid'],token_data['credentials']['secret'])
-            if credentials:
-            #source = os.path.join(self.__resource_path, 'credentials.json')
-            #with open(source, 'r') as f:
-                #data = json.load(f)
-                #credentials = (data['appid'], data['secret'])
-                return credentials
-        except:
-            return None
+    @with_db_connection
+    def get_credential(cursor, self):
+        user_condition = f"AND ui.user_info->>'user_email' IN (%s)"
+        query = f''' 
+                SELECT ui.user_info -> 'token' ->> 'appid', ui.user_info -> 'token' ->> 'secret' 
+                FROM user_info AS ui
+                WHERE 1=1 {user_condition}
+                '''
+        cursor.execute(query, (self.user,))
+        user_data = cursor.fetchone()
+        [appid, secret] = user_data
+        credentials = (appid, secret)
+        print(credentials)
+        return credentials
 
-    def __get_token_from_database(self):
-        try:
-            r = requests.get(self.token_url,
-                             auth=HTTPBasicAuth('admin', 'admin'))
-            r = r.json()
-            return r
-        except Exception as e:
-            print(e)
-        return None
+    @with_db_connection
+    def __get_token_from_database(cursor, self):
+        user_condition = f"AND ui.user_info->>'user_email' IN (%s)"
+        query = f''' 
+                SELECT ui.user_info
+                FROM user_info AS ui
+                WHERE 1=1 {user_condition}
+                '''
+        cursor.execute(query, (self.user,))
+        user_token = cursor.fetchone()[0]
+        return user_token
     
     def get_token_backend(self):
         database_token = self.__get_token_from_database()
-        #print(database_token)
         database_token_backend = JustToken()
-        database_token_backend.token = database_token['token']
+        database_token_backend.token = json.loads(database_token)['token']['approve']             
         database_token_backend.load_token()
         self.token = database_token_backend.token
         return database_token_backend
@@ -130,7 +130,12 @@ class sharepoint:
     
     def get_folder_under_validation_lib(self, path):
         return self.get_validation_lib.get_item_by_path(path)
-
+    def iur_from_sharepoint(self, path: str):
+        folder = []
+        for item in self.get_validation_lib.get_item_by_path(path).get_items():
+            if item.is_folder: 
+                folder.append(item.name)
+        return folder
     def upload_to_path(self, path: str, file_path: str):
             try:
                 print(self.get_validation_lib)
@@ -162,8 +167,8 @@ class sharepoint:
 
 
 import tempfile
-def sharepoint_upload_file(uploaded_file, folder_path=None, file_name=None, get_share_link=False):                
-    sharepoint_upload = sharepoint()
+def sharepoint_upload_file(user ,uploaded_file, folder_path=None, file_name=None, get_share_link=False):                
+    sharepoint_upload = token_prove(user)
     if folder_path is None:
         folder_path = f'/IUR/test_folder_Bill'
     #臨時文件夾位置C:\Users\CHBI965\AppData\Local\Temp\tmpzoliawib
@@ -180,11 +185,19 @@ def sharepoint_upload_file(uploaded_file, folder_path=None, file_name=None, get_
     os.remove(temp_file_path)
     os.rmdir(temp_dir)
 
-def sharepoint_download_file_zip(file_name, folder_path=None):
-    sharepoint_download = sharepoint()
+def sharepoint_download_file_zip(user, file_name, folder_path=None):
+    sharepoint_download = token_prove(user)
     if folder_path is None:
         folder_path = f'/IUR/test_folder_Bill'
     
     print(file_name)
     file = sharepoint_download.download_from_sharepoint(folder_path, file_name)    
     return file
+
+def get_iur_sharepoint_folder(user, folder_choose):
+    sp_instance = token_prove(user)
+    folder_choose = [item for item in folder_choose if item.strip()]
+    folder_string = '/'.join(folder_choose)
+    folder_path = f'/IUR/{folder_string}'
+    folder_name = sp_instance.iur_from_sharepoint(folder_path)
+    return  folder_name

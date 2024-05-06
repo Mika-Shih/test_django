@@ -27,60 +27,60 @@ def sign_up(request):
 def login(request):
     return render(request, "polls/login.html")
 
-@api_view(["post"])
-@csrf_exempt
-# 創建帳號並發送激活郵件
-def create_account(request):
-    conn, cursor, close_database = connect_to_database()
-    username = request.data.get('username')
-    password = request.data.get('password')
-    user = (username, password)
-    print(user)
-    username="bill.chang@hp.com"
+# @api_view(["post"])
+# @csrf_exempt
+# # 創建帳號並發送激活郵件
+# def create_account(request):
+#     conn, cursor, close_database = connect_to_database()
+#     username = request.data.get('username')
+#     password = request.data.get('password')
+#     user = (username, password)
+#     print(user)
+#     username="bill.chang@hp.com"
     
-    username_condition = f"AND (ui.user_info->>'user_email') = %s"
-    query = f'''
-    SELECT ui.user_info->>'last_update_time' AS last_update_time,
-        ui.user_info->>'certificate' AS certificate
-    FROM user_info AS ui
-    WHERE 1=1 {username_condition}
-    '''
-    cursor.execute(query, (username,))
-    result = cursor.fetchone()
-    if result:
-        last_update_time = result[0]
-        certificate = result[1]
-        close_database()
-        response_data = {
-        'error': '此用戶已存在',  # 替換成實際的重定向 URL
-        }
-        return JsonResponse(response_data)
-    else:   
-        activation_code = activation_code_generate()       
-        # 構建激活連結
-        activation_link = f'http://localhost:8000/user/activate/{activation_code}/'
-        #生成brcypt密碼
-        hashed_password = generate_hashed_password(password)
-        # 發送激活郵件
-        mail_views.send_activation_email(username, activation_link)
-        current_time = datetime.now() + timedelta(days=7)
-        timezone = pytz.timezone('Asia/Taipei')
-        last_update_time = current_time.astimezone(timezone)
-        user_info = {
-            "user_email": username,
-            "password": hashed_password,
-            "activation_code": activation_code,
-            'last_update_time': last_update_time.strftime("%Y-%m-%d %H:%M:%S"),
-        }
+#     username_condition = f"AND (ui.user_info->>'user_email') = %s"
+#     query = f'''
+#     SELECT ui.user_info->>'last_update_time' AS last_update_time,
+#         ui.user_info->>'certificate' AS certificate
+#     FROM user_info AS ui
+#     WHERE 1=1 {username_condition}
+#     '''
+#     cursor.execute(query, (username,))
+#     result = cursor.fetchone()
+#     if result:
+#         last_update_time = result[0]
+#         certificate = result[1]
+#         close_database()
+#         response_data = {
+#         'error': '此用戶已存在',  # 替換成實際的重定向 URL
+#         }
+#         return JsonResponse(response_data)
+#     else:   
+#         activation_code = activation_code_generate()       
+#         # 構建激活連結
+#         activation_link = f'http://localhost:8000/user/activate/{activation_code}/'
+#         #生成brcypt密碼
+#         hashed_password = generate_hashed_password(password)
+#         # 發送激活郵件
+#         mail_views.send_activation_email(username, activation_link)
+#         current_time = datetime.now() + timedelta(days=7)
+#         timezone = pytz.timezone('Asia/Taipei')
+#         last_update_time = current_time.astimezone(timezone)
+#         user_info = {
+#             "user_email": username,
+#             "password": hashed_password,
+#             "activation_code": activation_code,
+#             'last_update_time': last_update_time.strftime("%Y-%m-%d %H:%M:%S"),
+#         }
 
-        user_info_json = json.dumps(user_info)
-        query = f"INSERT INTO user_info (user_info, user_name) VALUES (%s, %s)"
-        cursor.execute(query, (user_info_json, 'null'))
-        close_database()
-        response_data = {
-        'redirect_url': '/user/login/',  # 替換成實際的重定向 URL
-        }
-        return JsonResponse(response_data)
+#         user_info_json = json.dumps(user_info)
+#         query = f"INSERT INTO user_info (user_info, user_name) VALUES (%s, %s)"
+#         cursor.execute(query, (user_info_json, 'null'))
+#         close_database()
+#         response_data = {
+#         'redirect_url': '/user/login/',  # 替換成實際的重定向 URL
+#         }
+#         return JsonResponse(response_data)
 
 
 @api_view(["post"])

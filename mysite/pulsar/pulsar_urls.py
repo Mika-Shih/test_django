@@ -21,7 +21,5 @@ urlpatterns = [
 
     path("download_version/", pulsar_views.download_version, name="download_version"),
     path("device_info/", pulsar_views.device_info, name="device_info"),
-    
-    
-    
+  
 ]

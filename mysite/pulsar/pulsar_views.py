@@ -217,6 +217,7 @@ def select_subdevice(cursor, request):
 @parser_classes([MultiPartParser]) 
 @with_db_connection
 def create_version(cursor, request):
+    user = request.user_id
     shortname = json.loads(request.data.get('shortname'))
     longname = json.loads(request.data.get('longname'))
     subdevice = json.loads(request.data.get('subdevice'))
@@ -254,7 +255,7 @@ def create_version(cursor, request):
             
             if uploaded_file:
                 new_filename = f'{packageversion}.zip'
-                sharepoint_views.sharepoint_upload_file(uploaded_file = uploaded_file, file_name = new_filename)
+                sharepoint_views.sharepoint_upload_file(user, uploaded_file = uploaded_file, file_name = new_filename)
             print("OK")
             return JsonResponse({'finaldata': 'successful'})
         else:

@@ -4,12 +4,13 @@ from django.conf import settings
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from datetime import datetime, timedelta
-import psycopg2
 import pytz #時間區域
 from dateutil.parser import parse #時間字串改回時間 用於時間比較
 import uuid #亂數碼
 import json, os, time
 import inspect #取得對象訊息/代碼可讀
+import openpyxl
+import tempfile
 #清除緩存
 from django.views.decorators.cache import cache_control
 #跨站偽造
@@ -65,10 +66,11 @@ def select_long_name(cursor, request):
 @parser_classes([MultiPartParser])
 @with_db_connection
 def download_version(cursor, request):
+    user = request.user_id
     version = json.loads(request.data.get('version'))
     file_name =f'{version}.zip'
     try:
-        temp_dir = sharepoint_views.sharepoint_download_file_zip(file_name)
+        temp_dir = sharepoint_views.sharepoint_download_file_zip(user, file_name)
         temp_file_path = os.path.join(temp_dir, file_name)
         #download_url = f'/pulsar/download_file/{file_name}/'
         print(temp_file_path, temp_dir)
@@ -255,3 +257,29 @@ def download_file_exe(file_name):
 
 # cleanup_thread = threading.Thread(target=cleanup_temp_files)
 # cleanup_thread.start()
+
+def excel_make(data):
+    temp_dir = tempfile.mkdtemp()
+    file_name = "temp_excel.xlsx"
+    file_path = os.path.join(temp_dir, file_name)
+    print(temp_dir, file_path)
+    wb = openpyxl.Workbook()
+    sheet = wb[wb.sheetnames[0]]
+    headers = ["platform", "phase", "target", "group", "cycle", "sku", "sn", "borrower", "status", "position", "remark", "update_time"]
+    for index, header in enumerate(headers, start=1):
+        sheet.cell(row=1, column=index).value = header
+    for index, data_item in enumerate(data, start=2):
+        sheet.cell(row=index, column=1).value = data_item["platform"]
+        sheet.cell(row=index, column=2).value = data_item["phase"]
+        sheet.cell(row=index, column=3).value = data_item["target"]
+        sheet.cell(row=index, column=4).value = data_item["group"]
+        sheet.cell(row=index, column=5).value = data_item["cycle"]
+        sheet.cell(row=index, column=6).value = data_item["sku"]
+        sheet.cell(row=index, column=7).value = data_item["sn"]
+        sheet.cell(row=index, column=8).value = data_item["borrower"]
+        sheet.cell(row=index, column=9).value = data_item["status"]
+        sheet.cell(row=index, column=10).value = data_item["position"]
+        sheet.cell(row=index, column=11).value = data_item["remark"]
+        sheet.cell(row=index, column=12).value = data_item["update_time"]
+    wb.save(file_path)
+    return file_path

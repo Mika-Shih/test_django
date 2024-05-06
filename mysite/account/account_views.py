@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from django.db import connection
 import json
-
+import tempfile, os
 def with_db_connection(func):
     def wrapper(*args, **kwargs):
         with connection.cursor() as cursor:
@@ -23,8 +23,6 @@ def user_account_approve(user, permission=None):
         else:    
             return False
 
-
-SERVER_HOST_NAME = "env-lab.eba-jpevj6xq.ap-southeast-1.elasticbeanstalk.com"
 class JustToken(BaseTokenBackend):
     def __init__(self):
         super().__init__()
@@ -61,6 +59,7 @@ class token_prove:
         user_data = cursor.fetchone()
         [appid, secret] = user_data
         credentials = (appid, secret)
+        print(credentials)
         return credentials
 
     @with_db_connection
@@ -113,8 +112,53 @@ class token_prove:
     @property
     def sharepoint(self):
         return self.account.sharepoint() if self.account else None
-
+    @property
+    def commsite(self):
+        ret = self.sharepoint.search_site('comm tech')
+        if len(ret) > 0: return ret[0]
+        else: None
+    @property
+    def get_validation_lib(self):
+        if self.account:
+            validation_lib = [
+                lib for lib in self.commsite.list_document_libraries()
+                if lib.name == 'Validation and Quality Program'
+            ][0]
+            return validation_lib
+        return None
+    def get_folder_under_validation_lib(self, path):
+        return self.get_validation_lib.get_item_by_path(path)
+    def iur_from_sharepoint(self, path: str):
+        folder = []
+        for item in self.get_validation_lib.get_item_by_path(path).get_items():
+            if item.is_folder: 
+                folder.append(item.name)
+        return folder
+    def download_from_sharepoint(self, path: str, name: str, to_path=None):
+        updater_binery = [
+            i for i in self.get_validation_lib.get_item_by_path(path).get_items() if i.name == name
+        ]
+        if updater_binery:
+            path = self.curdir.absolute().as_posix()
+            if to_path:
+                updater_binery[0].download(to_path)
+                return None
+            else:
+                temp_dir = tempfile.mkdtemp()
+                print("完成temp_dir", temp_dir)
+                updater_binery[0].download(temp_dir)
+                print("完成download0")
+                temp_file_path = os.path.join(temp_dir, name)
+                print(temp_file_path)  
+                print("完成download")
+                return temp_dir
 def get_account(user):
     sp_instance = token_prove(user)
     account = sp_instance.account
     return account
+
+def get_iur_sharepoint_folder(user):
+    sp_instance = token_prove(user)
+    folder_path = f'/IUR'
+    folder_name = sp_instance.iur_from_sharepoint(folder_path)
+    return  folder_name

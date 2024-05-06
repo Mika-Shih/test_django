@@ -131,3 +131,48 @@ LINE 1: ...power_state": "your_power_state"}', 'your_level', 'your_add_...
 2024-02-26 15:04:24 -  C:\Users\CHBI965\Desktop\HP\mysite\pulsar\pulsar_views.py/download_version: cannot access local variable 'cleanup_async' where it is not associated with a value // Note:None
 2024-02-26 16:50:22 -  C:\Users\CHBI965\Desktop\HP\mysite\pulsar\pulsar_views.py/download_version: 'NoneType' object is not subscriptable // Note:None
 2024-02-26 17:37:50 -  C:\Users\CHBI965\Desktop\HP\mysite\cat\cat_views.py/download_cth: expected str, bytes or os.PathLike object, not NoneType // Note:None
+2024-04-19 15:17:50 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: polls/mail_borrow_rent.html // Note:send_mail_fail: Bo Yu Chen
+2024-05-02 12:51:20 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: polls/mail_borrow_rent.html // Note:send_mail_fail: Bo Yu Chen
+2024-05-02 13:00:22 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: polls/mail_borrow_rent.html // Note:send_mail_fail: Bo Yu Chen
+2024-05-02 13:13:15 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: polls/mail_borrow_rent.html // Note:send_mail_fail: Bo Yu Chen
+2024-05-02 13:17:05 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: polls/mail_borrow_rent.html // Note:send_mail_fail: Bo Yu Chen
+2024-05-02 17:50:13 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/changeplatform: operator does not exist: character varying = text[]
+LINE 5:                 WHERE 1=1 AND ul.serial_number IN (ARRAY['5C...
+                                                       ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+ // Note:serial_number: 5CG31907YQ
+2024-05-02 17:50:13 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/changeplatform: operator does not exist: character varying = text[]
+LINE 5:                 WHERE 1=1 AND ul.serial_number IN (ARRAY['5C...
+                                                       ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+ // Note:serial_number: 5CD3067639
+2024-05-02 17:50:13 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/changeplatform: operator does not exist: character varying = text[]
+LINE 5:                 WHERE 1=1 AND ul.serial_number IN (ARRAY['5C...
+                                                       ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+ // Note:serial_number: 5CD207HWKB
+2024-05-03 15:55:28 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object is not subscriptable // Note:serial_number: 5CD13960HB
+2024-05-03 15:55:28 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object is not subscriptable // Note:serial_number: 00037700BJ
+2024-05-03 15:55:28 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object is not subscriptable // Note:serial_number: TGW1030067
+2024-05-03 15:55:28 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object is not subscriptable // Note:serial_number: 5CG3170VV3
+2024-05-03 15:55:28 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object is not subscriptable // Note:serial_number: 048909
+2024-05-03 15:55:28 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object is not subscriptable // Note:serial_number: 5CG3115Z0J
+2024-05-03 15:55:28 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object is not subscriptable // Note:send_mail_fail: bill.chang@hp.com
+2024-05-03 16:05:51 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object has no attribute 'user_id' // Note:send_mail_fail: bill.chang@hp.com
+2024-05-03 16:09:31 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'NoneType' object has no attribute 'user_id' // Note:send_mail_fail: bill.chang@hp.com
+2024-05-03 16:13:59 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'NoneType' object has no attribute 'user_id' // Note:send_mail_fail: Bill Chang
+2024-05-03 16:14:34 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'NoneType' object has no attribute 'user_id' // Note:send_mail_fail: Bo Yu Chen
+2024-05-03 16:24:34 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'NoneType' object has no attribute 'user_id' // Note:send_mail_fail: Bo Yu Chen
+2024-05-03 16:30:25 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'NoneType' object has no attribute 'user_id' // Note:send_mail_fail: Bo Yu Chen
+2024-05-03 16:32:03 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'NoneType' object has no attribute 'user_id' // Note:send_mail_fail: Bo Yu Chen
+2024-05-06 16:28:15 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: send_rent_borrowed_mail() missing 1 required positional argument: 'user' // Note:send_mail_fail: Bo Yu Chen
+2024-05-06 16:31:04 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: send_rent_borrowed_mail() missing 1 required positional argument: 'user' // Note:send_mail_fail: Bill Chang
+2024-05-06 16:43:15 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CG31907YQ
+2024-05-06 16:43:15 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD2378J8P
+2024-05-06 16:45:58 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 00027711FY
+2024-05-06 16:45:58 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD2497YGV
+2024-05-06 16:47:19 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD2378J8P
+2024-05-06 16:49:46 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD13960HB
+2024-05-06 16:50:09 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD13960HB
+2024-05-06 16:51:52 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD13960HB
+2024-05-06 16:55:26 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'str' object has no attribute 'user_email' // Note:serial_number: 5CG3170VV3

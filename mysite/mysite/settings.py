@@ -41,8 +41,8 @@ CSRF_COOKIE_HTTPONLY = True
 # Application definition
 
 INSTALLED_APPS = [
-    'polls.apps.PollsConfig',
     # 'corsheaders',
+    'polls',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -132,7 +132,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024 * 1024 * 10
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 

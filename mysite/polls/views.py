@@ -1,21 +1,22 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 import json
 from datetime import datetime
-import pytz #時間區域
+import pytz # time zone
 from django.views.decorators.csrf import csrf_exempt
 from O365 import Account, MSGraphProtocol
 #post
 from rest_framework.decorators import api_view, parser_classes
-#post 掛檔
+#post attach file
 from rest_framework.parsers import MultiPartParser
-#模板渲染
+#template 
 from django.template.loader import get_template
 
 from account import account_views as account_views
 from mail import mail_views as mail_views
 from log import log_views as log_views
 from user import user_views as user_views
+from tool import tool_views as tool_views
 from sharepoint import sharepoint_views as sharepoint_views
 from user.token import LoginRequiredMiddleware #request.uesr_id
 from django.db import connection
@@ -47,11 +48,6 @@ def with_db_connection(func):
         with connection.cursor() as cursor:
             return func(cursor, *args, **kwargs)
     return wrapper
-
-def account_get(request):
-    credentials = ('61d9f830-4547-48db-b8d0-e7a5760c79e7','HtN8Q~HjMvixbJ6flyDvRnBXH300pR9oeU1OwbmC')
-    protocal   = MSGraphProtocol(api_version='beta')
-    return Account(credentials,protocol=protocal)
 
 @with_db_connection
 def hint_machine_arrive_mail(cursor, request):
@@ -99,7 +95,8 @@ def target(cursor, request):
 @with_db_connection
 def filtersearch(cursor, request):
     finaldatas = request.data
-    print(finaldatas)
+    start_time = request.data.get('start_time')
+    end_time = request.data.get('end_time')
     if len(finaldatas["target"]) > 0:
         targetset = set(finaldatas["target"])
     else:
@@ -196,7 +193,7 @@ def filtersearch(cursor, request):
             SELECT ur.uut_id
             FROM unit_record AS ur
             WHERE ur.status = 'Delete' 
-        ) {target_condition} {group_condition} {platform_condition} {cycle_condition} {SN_condition} {phase_condition} {status_condition} {machine_arrive_mail_condition}
+        ) {target_condition} {group_condition} {platform_condition} {cycle_condition} {SN_condition} {phase_condition} {status_condition} {machine_arrive_mail_condition} AND subquery.last_update_time BETWEEN '{start_time}' AND '{end_time}'
         ORDER BY subquery.last_update_time DESC
     '''
     cursor.execute(query, targetsearch+groupsearch+platformsearch+cyclesearch+serial_number_values+phasesearch+statussearch+tuple(machine_arrive_mail_set))  #查詢  套用元組進行查詢
@@ -226,7 +223,7 @@ def filtersearch(cursor, request):
         return JsonResponse(response_data) 
     else:
         response_data = {
-                'error': '無匹配資料' 
+                'error': 'No matching data' 
                 }
         return JsonResponse(response_data) 
 
@@ -323,7 +320,6 @@ def cycle(cursor, request):
     if len(targetsearch2) > 0:
         target_condition = f"AND pi.target IN ({targetsearch_placeholders})"
 
-    # 构建产品组条件的查询语句部分
     group_condition = ''
     if len(groupsearch2) > 0:
         group_condition = f"AND pi.product_group IN ({groupsearch_placeholders})"
@@ -369,6 +365,7 @@ def status(cursor, request):
     rows = cursor.fetchall()
     status = {'status': [row[0] for row in rows] + ['machine_arrive_mail']}
     return JsonResponse(status)
+
 @api_view(["post"])
 @csrf_exempt
 @with_db_connection
@@ -432,7 +429,7 @@ def widthsearch(cursor, request):   #SN/platform/borrower
         return JsonResponse(response_data) 
     else:
         response_data = {
-                'error': '無匹配資料' 
+                'error': 'No matching data' 
                 }
         return JsonResponse(response_data) 
 
@@ -443,17 +440,17 @@ def widthsearch(cursor, request):   #SN/platform/borrower
 def changeplatform(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
+        return JsonResponse({'error': 'Insufficient permissions'})
     finaldatas = request.data.get('finaldata')
     sn_list = []
     for finaldata in finaldatas:
         platform = finaldata["platform"]
         sn = finaldata["sn"]
         if platform == '' or sn == '':
-            return JsonResponse({'error': 'platform 或是 sn 不可為空'})
+            return JsonResponse({'error': '"Platform" or "SN" cannot be empty.'})
         status = machine_status_approve(sn)
         if status == 'Delete':
-            return JsonResponse({'error': '機台已被刪除'})
+            return JsonResponse({'error': 'The machine has been deleted.'})
     for finaldata in finaldatas:
         try:
             platform = finaldata["platform"]
@@ -471,7 +468,7 @@ def changeplatform(cursor, request):
 
             platform_condition = ''
             platformparams = []
-            if platform:  #檢查是否為空值
+            if platform:  
                 platform_condition = f"AND pi.codename IN (%s)"
                 platformparams.append(platform)
             target_condition = ''
@@ -500,14 +497,10 @@ def changeplatform(cursor, request):
             FROM updated_platform
             '''
             cursor.execute(query, (remark,) + tuple(platformparams) + tuple(targetparams) + tuple(groupparams) + tuple(cycleparams))  #(platform,) 當動態字元組
-            platform_id=cursor.fetchone()[0]  #cursor.execute結果中的第一筆資料 [0]第0欄位
+            platform_id=cursor.fetchone()[0] 
 
-            sn_condition = ''
-            snparams = []
-            if sn:  #檢查是否為空值
-                sn_condition = f"AND ul.serial_number IN (%s)"
-                snparams.append(sn)
-            
+            sn_condition = f"AND ul.serial_number IN (%s)"
+
             query = f'''
             WITH updated_list AS (
                 UPDATE unit_list AS ul
@@ -518,8 +511,8 @@ def changeplatform(cursor, request):
             SELECT id
             FROM updated_list
             '''
-            cursor.execute(query, (platform_id,) + (phase,) + (sku,) + (position,) + (remark,) + tuple(snparams))  #(platform,) 當動態字元組
-            uut_id=cursor.fetchone()[0]  #cursor.execute結果中的第一筆資料 [0]第0欄位
+            cursor.execute(query, (platform_id,) + (phase,) + (sku,) + (position,) + (remark,) + (sn,))
+            uut_id=cursor.fetchone()[0] 
             operation = f"修改: {sn} 機台"
             log_views.log_operation(user_id, operation)
         except Exception as e:
@@ -527,7 +520,7 @@ def changeplatform(cursor, request):
             sn_list.append(sn)
     if sn_list:
         response_data = {
-            'error': f"修改: {sn_list} 機台失敗",
+            'error': f"Modification: {sn_list} machine failed.",
             }
     else:
         response_data = {
@@ -538,25 +531,23 @@ def changeplatform(cursor, request):
 #return series
 @api_view(["post"])
 @csrf_exempt
-@parser_classes([MultiPartParser])
 @with_db_connection
 def returnplatform(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
-    finaldatas = json.loads(request.data.get('finaldata'))
-    purpose = json.loads(request.data.get('purpose'))
-    message = json.loads(request.data.get('message'))
-    cc_mail = json.loads(request.data.get('cc_mail'))
-    uploaded_file = request.FILES.get('file')
-
+        return JsonResponse({'error': 'Insufficient permissions'})
+    finaldatas = request.data.get('finaldata')
+    purpose = request.data.get('purpose')
+    message = request.data.get('message')
+    cc_mail = request.data.get('cc_mail')
+    
     borrower_dict = {}  # 用於分類相同 SN 的字典
     borrower_set = set()  # 用於儲存不同的 SN
 
     for finaldata in finaldatas:
         status = machine_status_approve(finaldata["sn"])
         if status != 'Rent':
-            return JsonResponse({'error': '機台狀態必須為Rent'})
+            return JsonResponse({'error': 'Please ensure that the status of each machine is Rent'})
     sn_list = []
     for finaldata in finaldatas:
         try:
@@ -595,10 +586,11 @@ def returnplatform(cursor, request):
 
             result_ui = borrower_id_to_user_info(borrower_id)
             borrower = result_ui[0]
+            borrower_mail = json.loads(result_ui[2])["user_email"]
 
             newstatus = 'Keep On'
             last_update_time = timenow()
-            cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time, remark) VALUES (%s, %s, %s, %s)", (uut_id, newstatus, last_update_time, remark))
+            cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time, remark) VALUES (%s, %s, %s, %s)", (uut_id, newstatus, last_update_time, purpose))
         
             iur_data = {
                 'platform': platform,
@@ -610,33 +602,25 @@ def returnplatform(cursor, request):
                 'back_time': last_update_time.strftime("%B %d, %Y, %I:%M %p")    
                 }
             
-            if borrower in borrower_dict:
-                borrower_dict[borrower].append(iur_data)
+            if borrower_mail in borrower_dict:
+                borrower_dict[borrower_mail].append(iur_data)
             else:
-                borrower_dict[borrower] = [iur_data]
+                borrower_dict[borrower_mail] = [iur_data]
 
-            borrower_set.add(borrower)
+            borrower_set.add(borrower_mail)
             operation = f"歸還:{sn}機台"
             log_views.log_operation(user_id, operation)
         except Exception as e:
             log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"serial_number: {sn}")
             sn_list.append(sn)
-    if uploaded_file:
-        try:
-            sharepoint_views.sharepoint_upload_file(uploaded_file) 
-            operation = f"歸還機台, 附加檔案: {uploaded_file.name}"
-            log_views.log_operation(user_id, operation)
-        except Exception as e:
-            log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"uploaded_file_fail: {uploaded_file.name}")
-            return JsonResponse({'error': f"附加檔案: {uploaded_file.name} 上傳失敗"})
-    for borrower in borrower_set:    
+
+    for borrower_mail in borrower_set:    
         # print(borrower_dict[borrower])
         try:
-            borrower_mail = username_to_usermail(borrower)
-            send_rent_borrowed_mail(to=borrower_mail, cc=cc_mail, return_records=borrower_dict[borrower], message=message)
+            send_rent_borrowed_mail(user=user_id, to=borrower_mail, cc=cc_mail, return_records=borrower_dict[borrower_mail], message=message)
         except Exception as e:
-            log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"send_mail_fail: {borrower}")
-            return JsonResponse({'error': f"寄送郵件失敗: {borrower_mail}"})
+            log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"send_mail_fail: {borrower_mail}")
+            return JsonResponse({'error': f"send_mail_fail: {borrower_mail}"})
     return JsonResponse({'finaldata': 'successful'})
 
 
@@ -665,7 +649,7 @@ def lendpersonnel(cursor, request):
 def lendplatform(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
+        return JsonResponse({'error': 'Insufficient permissions'})
     lendpersonnel = request.data.get('lendperson')
     finaldatas = request.data.get('finaldata')
     cc_mail = request.data.get('cc_mail')
@@ -674,7 +658,7 @@ def lendplatform(cursor, request):
     for finaldata in finaldatas:
         status = machine_status_approve(finaldata["sn"])
         if status != 'Keep On':
-            return JsonResponse({'error': '機台狀態必須為Keep On'})
+            return JsonResponse({'error': 'Please ensure that the status of each machine is Keep On'})
     iur_mail=[]
     for finaldata in finaldatas:
         sn = finaldata["sn"]
@@ -683,12 +667,12 @@ def lendplatform(cursor, request):
         result_ur=uut_id_to_unit_record(uut_id)
         if result_ur[1] != 'Keep On':
             response_data = {
-            'error': '機台狀態必須為Keep On',  
+            'error': 'Please ensure that the status of each machine is Keep On',  
             }
             return JsonResponse(response_data)
     if lendpersonnel == '':
         response_data = {
-        'error': '借出人員不可為空',  
+        'error': 'The borrower cannot be null',  
         }
         return JsonResponse(response_data)
     '''log
@@ -713,15 +697,15 @@ def lendplatform(cursor, request):
             lendpersonnel_condition = ''
             lendpersonnelparams = []
             if lendpersonnel:
-                lendpersonnel_condition = f"AND user_info.user_name IN (%s)" 
+                lendpersonnel_condition = f"AND user_info.user_info ->> 'user_email' IN (%s)" 
                 lendpersonnelparams.append(lendpersonnel)            
             query = f'''
-            SELECT user_id
+            SELECT user_id, user_name
             FROM user_info
             WHERE 1=1 {lendpersonnel_condition} 
             '''
             cursor.execute(query, tuple(lendpersonnelparams))  
-            borrower_id=cursor.fetchone()[0]  #cursor.execute結果中的第一筆資料 [0]第0欄位
+            [borrower_id, user_name]=cursor.fetchone()
 
             newstatus = 'Rent'
             last_update_time = timenow()
@@ -732,7 +716,7 @@ def lendplatform(cursor, request):
                 'phase': phase,
                 'sku': sku,  
                 'sn': sn,
-                'borrower_id': lendpersonnel,
+                'borrower_id': user_name,
                 'purpose': purpose,
                 'rent_time': last_update_time.strftime("%B %d, %Y, %I:%M %p"),    
                 }
@@ -742,11 +726,10 @@ def lendplatform(cursor, request):
         except Exception as e:
             log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"serial_number: {sn}")
     try:
-        send_rent_borrowed_mail(to=username_to_usermail(lendpersonnel), cc=cc_mail, borrow_records=iur_mail, message=message)
+        send_rent_borrowed_mail(user=user_id, to=lendpersonnel, cc=cc_mail, borrow_records=iur_mail, message=message)
     except Exception as e:
         log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"send_mail_fail: {lendpersonnel}")
-        return JsonResponse({'error': '寄信失敗'})
-    
+        return JsonResponse({'error': 'Failed to send email, please check if the token has expired'})
     return JsonResponse({'finaldata': 'successful'})
 
 #scrap series
@@ -756,12 +739,12 @@ def lendplatform(cursor, request):
 def scrapped_platform(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
+        return JsonResponse({'error': 'Insufficient permissions'})
     finaldatas = request.data.get('finaldata')
     for finaldata in finaldatas:
         status = machine_status_approve(finaldata["sn"])
         if status != 'Keep On':
-            return JsonResponse({'error': '機台狀態必須為Keep On'})
+            return JsonResponse({'error': 'Please ensure that the status of each machine is Keep On'})
 
     for finaldata in finaldatas:
         try:
@@ -794,17 +777,19 @@ def scrapped_platform(cursor, request):
             log_views.log_operation(user_id, operation)
         except Exception as e:
             log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"serial_number: {sn}")
-            return JsonResponse({'error': f"報廢: {sn} 機台失敗"})
+            return JsonResponse({'error': f"Scrap: {sn} machine failed"})
     return JsonResponse({'finaldata': 'successful'})
 
 @api_view(["post"])
 @csrf_exempt
+@parser_classes([MultiPartParser])
 @with_db_connection
 def send_mail_newplatform(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
-    finaldatas = request.data.get('finaldata')
+        return JsonResponse({'error': 'Insufficient permissions'})
+    finaldatas = json.loads(request.data.get('finaldata'))
+    uploaded_file = request.FILES.get('file')
     for finaldata in finaldatas:
         platform = finaldata["platform"]
         phase = finaldata["phase"]
@@ -889,11 +874,8 @@ def send_mail_newplatform(cursor, request):
             iur_data.append(data)
 
         template = get_template("polls/mail_machine_arrive_template.html")
-        credentials = ('61d9f830-4547-48db-b8d0-e7a5760c79e7','HtN8Q~HjMvixbJ6flyDvRnBXH300pR9oeU1OwbmC')
-        protocal   = MSGraphProtocol(api_version='beta')
-        account = Account(credentials,protocol=protocal)
-        message = 'good'
-        
+        account = account_views.get_account
+        message = ''
         context = {
                         #'receiver':'  '.join([t.usernameincompany for t in to]),
                         'message':message,
@@ -910,11 +892,20 @@ def send_mail_newplatform(cursor, request):
         if to:
             to = list(to.values_list('user__email',flat=True))
         '''    
-        to = user_id   
+        # to = ['cmitcommsw@hp.com', 'stevencommshwall@hp.com', 'COMMsPM@hp.com']
+        to = ['bo.yu.chen@hp.com']  
         cc = ''
         mail_views.HP_mail(account,to,cc,subject,body)
+    if uploaded_file:   
+        try:
+            sharepoint_views.sharepoint_upload_file(uploaded_file) 
+            operation = f"歸還機台, 附加檔案: {uploaded_file.name}"
+            log_views.log_operation(user_id, operation)
+        except Exception as e:
+            log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"uploaded_file_fail: {uploaded_file.name}")
+            return JsonResponse({'error': f"附加檔案: {uploaded_file.name} 上傳失敗"})
     response_data = {
-        'finaldata': 'successful',  # 替換成實際的重定向 URL
+        'finaldata': 'successful', 
         }
     return JsonResponse(response_data)
 
@@ -938,16 +929,25 @@ def addplatformcombination(cursor, request):
 def addplatformonly(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
+        return JsonResponse({'error': 'Insufficient permissions'})
     platform = request.data.get('platform')
     target = request.data.get('target')
     group = request.data.get('group')
     cycle = request.data.get('cycle')
     if platform:
-        cursor.execute("INSERT INTO platform_info (codename, target, product_group, cycle) VALUES (%s, %s, %s, %s)", (platform, target, group, cycle))
-        return JsonResponse({'successful': '新增成功'}) 
+        query = f'''
+        SELECT *
+        FROM platform_info AS pi
+        WHERE pi.codename = %s AND pi.target = %s AND pi.product_group = %s AND pi.cycle = %s
+        '''
+        cursor.execute(query, (platform,) + (target,) + (group,) + (cycle,))
+        if cursor.fetchone():
+            return JsonResponse({'error': 'The combination already exists.'})
+        else:
+            cursor.execute("INSERT INTO platform_info (codename, target, product_group, cycle) VALUES (%s, %s, %s, %s)", (platform, target, group, cycle))
+            return JsonResponse({'successful': 'Added successfully.'}) 
     else:
-        return JsonResponse({'error': 'platform 不可為空'}) 
+        return JsonResponse({'error': 'Platform cannot be empty.'}) 
     
 # add new platform    
 @api_view(["post"])
@@ -956,7 +956,7 @@ def addplatformonly(cursor, request):
 def addnewplatform(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
+        return JsonResponse({'error': 'Insufficient permissions'})
     finaldatasjson = request.data.get('finaldata')
     uploaded_file = request.FILES.get('file')
     finaldatas = json.loads(finaldatasjson)
@@ -966,8 +966,8 @@ def addnewplatform(cursor, request):
         sn = finaldata["sn"]
         sn_set.add(sn)
 
-        if finaldata["platform"] == "" or finaldata["sn"] == "":
-            return JsonResponse({'error': 'platform 或是 sn 不可為空'})
+        if finaldata["platform"].strip() == "" or finaldata["sn"].strip() == "":
+            return JsonResponse({'error': 'Platform or SN cannot be empty.'})
         
         query = f'''
             SELECT ul.serial_number
@@ -976,7 +976,7 @@ def addnewplatform(cursor, request):
         '''
         cursor.execute(query, (sn,))  
         if cursor.fetchone():
-            return JsonResponse({'error': f"serial_number碼[{sn}] 資料庫已有 請在確認"})
+            return JsonResponse({'error': f"The serial number [{sn}] already exists in the database, please check."})
     if len(sn_set) == len(finaldatas):
         for finaldata in finaldatas:
             platform = finaldata["platform"]
@@ -1020,7 +1020,7 @@ def addnewplatform(cursor, request):
             '''
             cursor.execute(query, (remark,) + tuple(platformparams) + tuple(targetparams) + tuple(groupparams) + tuple(cycleparams))  #(platform,) 當動態字元組
             
-            platform_id=cursor.fetchone()[0]  #cursor.execute結果中的第一筆資料 [0]第0欄位
+            platform_id=cursor.fetchone()[0] 
             
             site="TW"
             status="Keep On"
@@ -1040,11 +1040,11 @@ def addnewplatform(cursor, request):
                 log_views.log_operation(user_id, operation)
             except Exception as e:
                 log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"uploaded_file_fail: {uploaded_file.name}")
-                return JsonResponse({'error': f"附加檔案: {uploaded_file.name} 上傳失敗"})
+                return JsonResponse({'error': f"Attachment: {uploaded_file.name} upload failed"})
 
         return JsonResponse({'finaldata': 'successful'})       
     else:
-        return JsonResponse({'error': "sn 輸入值有重複 請在確認"})
+        return JsonResponse({'error': "The input value for SN is duplicated, please check."})
 
 # delete series
 @api_view(["post"])
@@ -1053,20 +1053,19 @@ def addnewplatform(cursor, request):
 def deleteplatform(cursor, request):
     user_id = request.user_id
     if account_views.user_account_approve(user_id) == False:
-        return JsonResponse({'error': '權限不足'})
+        return JsonResponse({'error': 'Insufficient permissions'})
     finaldatas = request.data.get("finaldata")
     for finaldata in finaldatas:
         status = machine_status_approve(finaldata["sn"])
         if status != 'Keep On':
-            return JsonResponse({'error': '機台狀態必須為Keep On'})
+            return JsonResponse({'error': 'Please ensure that the status of each machine is Keep On'})
     for finaldata in finaldatas:
         sn = finaldata["sn"]
-        status = finaldata["status"]
         remark = finaldata["remark"]
 
         sn_condition = ''
         snparams = []
-        if sn:  
+        if sn:
             sn_condition = f"AND ul.serial_number IN (%s)"
             snparams.append(sn)
         query = f'''
@@ -1087,9 +1086,9 @@ def deleteplatform(cursor, request):
 
 
 #mail format
-def send_rent_borrowed_mail(self='',request=None,to=None,borrow_records=None,return_records=None,cc=None,message:str='',attachments:list=None):
+def send_rent_borrowed_mail(user,request=None,to=None,borrow_records=None,return_records=None,cc=None,message:str='',attachments:list=None):
     template = get_template("polls/mail_borrow_rent.html")
-    account = account_views.get_account('bill.chang@hp.com')
+    account = account_views.get_account(user)
     print(borrow_records)
     print(return_records)
     if account:
@@ -1125,13 +1124,13 @@ def send_rent_borrowed_mail(self='',request=None,to=None,borrow_records=None,ret
         return mail_views.HP_mail(account,to,cc,subject,body)
 
 
-@api_view(["post"])
-@csrf_exempt
-def proxy_mail(request):
-    data = request.data
-    print(data["subject"],data["to"],data["cc"],data["body"])
-    mail_views.send_email_proxy(data["subject"], data["to"], data["cc"], data["body"])
-    return JsonResponse({'redirect_url': '/polls/'})  
+# @api_view(["post"])
+# @csrf_exempt
+# def proxy_mail(request):
+#     data = request.data
+#     print(data["subject"],data["to"],data["cc"],data["body"])
+#     mail_views.send_email_proxy(data["subject"], data["to"], data["cc"], data["body"])
+#     return JsonResponse({'redirect_url': '/polls/'})  
 
 #machine record
 @api_view(["post"])
@@ -1280,6 +1279,26 @@ def user_info_mail(cursor, request):
     for row in rows:
         users_email.append(row[0])
     return JsonResponse({'users_email': users_email})
+
+
+@api_view(["post"])
+@csrf_exempt
+def excel_export(request):
+    finaldatas = json.loads(request.data.get('data'))
+    file_path = tool_views.excel_make(finaldatas)
+    print(file_path)
+    return FileResponse(open(file_path, 'rb'))
+
+@api_view(["post"])
+@csrf_exempt
+def sharepoint_name_user(request):
+    user_id = request.user_id
+    folder_choose = request.data.get('folder_choose')
+    print(folder_choose)
+    folder_name = sharepoint_views.get_iur_sharepoint_folder(user_id, folder_choose)
+    print(folder_name)
+    return JsonResponse({'folder_name': folder_name})
+
 
 def timenow():
     current_time = datetime.now()
