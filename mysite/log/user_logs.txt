@@ -720,3 +720,67 @@
 2024-05-06 17:01:36 - User bill.chang@hp.com: 歸還:5CD207HWKB機台 // Note:None
 2024-05-06 18:56:52 - User guest: Logged in // Note:None
 2024-05-07 01:31:43 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-09 15:30:35 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-09 16:57:18 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-13 11:49:15 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-13 16:49:51 - User bill.chang@hp.com: 借出: 5CD207HWKB 機台 // Note:None
+2024-05-13 17:08:25 - User guest: Logged in // Note:None
+2024-05-13 17:10:52 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-13 17:24:44 - User guest@none.com: Logged in // Note:None
+2024-05-13 17:24:48 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-14 14:00:55 - User guest@none.com: Logged in // Note:None
+2024-05-14 14:56:29 - User guest@none.com: Logged in // Note:None
+2024-05-15 12:02:48 - User guest@none.com: Logged in // Note:None
+2024-05-15 12:15:44 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:34:23 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:37:05 - User guest@none.com: Logged in // Note:None
+2024-05-15 12:37:43 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:38:16 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:38:39 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:39:56 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:42:14 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:47:46 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:49:53 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:50:23 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:51:03 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:52:31 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 12:54:53 - User guest@none.com: Logged in // Note:None
+2024-05-15 13:30:02 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:30:09 - User guest@none.com: Logged in // Note:None
+2024-05-15 13:32:27 - User guest@none.com: Logged in // Note:None
+2024-05-15 13:40:53 - User guest@none.com: Logged in // Note:None
+2024-05-15 13:41:25 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:41:28 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:41:30 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:41:32 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:41:56 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:44:59 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:48:09 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:48:31 - User guest@none.com: Logged in // Note:None
+2024-05-15 13:48:38 - User guest@none.com: Logged in // Note:None
+2024-05-15 13:48:42 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:50:33 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:50:41 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 13:50:47 - User guest@none.com: Logged in // Note:None
+2024-05-15 13:59:30 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 14:11:04 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 14:33:59 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 14:52:01 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 15:15:58 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-15 15:17:34 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-16 13:47:48 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-16 14:21:50 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-16 14:50:22 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-16 15:12:48 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-16 16:02:22 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-16 16:15:10 - User guest@none.com: Logged in // Note:None
+2024-05-16 16:15:25 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-17 16:31:31 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-20 14:38:41 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-20 16:55:21 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-21 11:07:24 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-21 11:22:38 - User bill.chang@hp.com: 報廢: CND2512X2S 機台 // Note:None
+2024-05-21 11:29:05 - User bill.chang@hp.com: 刪除: CND9505KLD 機台 // Note:None
+2024-05-21 14:33:35 - User bill.chang@hp.com: 修改: CND2512X2S 機台 // Note:None
+2024-05-21 14:49:32 - User bill.chang@hp.com: 借出: CND34513J6 機台 // Note:None
+2024-05-21 15:33:49 - User bill.chang@hp.com: Logged in // Note:None

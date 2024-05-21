@@ -24,6 +24,7 @@ from django.views.decorators.cache import cache_control
 import os
 import inspect
 from django.db import connection
+from account import account_views as account_views
 from sharepoint import sharepoint_views as sharepoint_views
 from tool import download_tool as download_tool
 from log import log_views as log_views
@@ -872,3 +873,44 @@ def download_cth(cursor, request):
     version = request.data.get('version')
     file_name =f'https://hp.sharepoint.com/:u:/r/teams/CommunicationsTechnologyTeam/Dogfood/IUR/test_folder_Bill/{version}.zip'
     return JsonResponse({'url': file_name}) 
+
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def create_task(cursor, request):
+    user_id = request.user_id
+    if account_views.user_account_approve(user_id) == False:
+        return JsonResponse({'error': 'Insufficient permissions'})
+    task_list = request.data.get('task')
+    machine_list = request.data.get('machine')
+    if not task_list or not machine_list:
+        return JsonResponse({'error': 'Please enter task and machine'})
+    for machine in machine_list:
+        query = f'''
+            SELECT tul.status
+            FROM test_unit_list AS tul
+            WHERE tul.serial_number IN (%s)
+        '''
+        cursor.execute(query, (machine,))
+        result = cursor.fetchone()
+        if result is None:
+            return JsonResponse({'error': 'Machine not found'})
+        else:
+            [status] = result
+            if status != 'idle':
+                return JsonResponse({'error': 'Machine is not idle'})
+    for machine in machine_list:
+        query = f'''
+            SELECT id
+            FROM test_unit_list AS tul
+            WHERE tul.serial_number IN (%s)
+        '''
+        cursor.execute(query, (machine,))
+        result = cursor.fetchone()
+        [test_unit_id] = result
+        for task in task_list:
+            update_time = timenow()
+            task_json = json.dumps(task)
+            cursor.execute("INSERT INTO test_unit_tasks (test_unit_id, status, testcontent, add_time) VALUES (%s, %s, %s, %s) RETURNING id" , (test_unit_id, "running", task_json, update_time))
+    
+    return JsonResponse({'finaldata': 'successful'})

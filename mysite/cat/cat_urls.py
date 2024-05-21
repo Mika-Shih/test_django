@@ -14,4 +14,5 @@ urlpatterns = [
     path("filter_platform/", cat_views.filter_platform, name="filter_platform"),
     path("filter_version/", cat_views.filter_version, name="filter_version"),
     path("download_cth/", cat_views.download_cth, name="download_cth"),
+    path("create_task/", cat_views.create_task, name="create_task"),
 ]

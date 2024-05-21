@@ -200,6 +200,39 @@ def end_task_machine(cursor, request):
     except Exception as e:
         log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"test_unit_list_id: {id}")
 
+
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def task_ready(cursor, request):
+    try:
+        task_id = request.data.get('task_id')
+        request_info_json = request.data.get('request_info')
+        uut_info_json = request.data.get('uut_info')
+        query = f'''
+            SELECT test_unit_id, status, testcontent
+            FROM test_unit_tasks AS tut
+            WHERE tut.id = %s  
+        '''
+        cursor.execute(query, (task_id,))
+        result = cursor.fetchone()
+        [test_unit_id, status, testcontent] = result
+        cursor.execute("DELETE FROM test_unit_tasks WHERE id = %s", (task_id,))
+        if status == "running" and testcontent:
+            query = f'''
+                UPDATE test_unit_list
+                SET status = %s, last_update_time = %s, uut_info = %s
+                WHERE id = %s
+            '''
+            cursor.execute(query, (status,) + (timenow(),) + (uut_info_json) + (test_unit_id,)) 
+            cursor.execute("INSERT INTO unit_task (test_unit_id, request_info, uut_info, status, start_time) VALUES (%s, %s, %s, %s, %s)", (test_unit_id, testcontent, uut_info_json, status, timenow()))
+            return JsonResponse({"status": "successful"}, safe=True)
+    except Exception as e:
+        log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"task_id ready fail: {task_id}")
+        return JsonResponse({"status": "failed"}, safe=True)
+        
+
+
 @with_db_connection
 def test_database(cursor, request):
     title = "BT"

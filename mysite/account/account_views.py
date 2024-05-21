@@ -2,6 +2,9 @@ from O365 import Account
 from O365.utils import BaseTokenBackend
 import sys
 from pathlib import Path
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
 from django.db import connection
 import json
 import tempfile, os
@@ -162,3 +165,36 @@ def get_iur_sharepoint_folder(user):
     folder_path = f'/IUR'
     folder_name = sp_instance.iur_from_sharepoint(folder_path)
     return  folder_name
+
+
+
+
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def add_member(cursor, request):
+    user_id = request.user_id
+    if user_account_approve(user_id) == False:
+        return JsonResponse({'error': 'Insufficient permissions'})
+    finaldatas = request.data.get('finaldata')
+    print(finaldatas)
+    for finaldata in finaldatas:
+        if finaldata["email"].strip() == "" or finaldata["site"].strip() == "" or finaldata["username"].strip() == "":
+            return JsonResponse({'error': 'User / email / site cannot be empty.'})
+        if not finaldata["email"].strip().endswith("@hp.com"):
+            return JsonResponse({'error': 'Email must end with @hp.com.'})
+        query = f'''
+            SELECT *
+            FROM user_info AS ui
+            WHERE ui.user_info ->> 'user_email' IN (%s)
+        '''
+        cursor.execute(query, (finaldata["email"],))
+        if cursor.fetchone():
+            return JsonResponse({'error': f"[{finaldata['email']}] already exists in the database, please check."})
+    for finaldata in finaldatas:
+        user_name = finaldata["username"]
+        site = finaldata["site"]
+        email = finaldata["email"]
+        user_info = json.dumps({"user_email": email})
+        cursor.execute("INSERT INTO user_info (user_name, user_site, user_info) VALUES (%s, %s, %s)", (user_name, site, user_info)) 
+    return JsonResponse({'finaldata': 'successful'})
