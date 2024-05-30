@@ -3,7 +3,6 @@ from django.urls import path
 from . import cat_views
 app_name = "cat"
 urlpatterns = [
-    #path("log_operation/", log_views.log_operation, name="log_operation"),
     path("machine_tool/", cat_views.machine_tool, name="machine_tool"),
     path("pause_machine_tool/", cat_views.pause_machine_tool, name="pause_machine_tool"),
     path("continue_machine_tool/", cat_views.continue_machine_tool, name="continue_machine_tool"),

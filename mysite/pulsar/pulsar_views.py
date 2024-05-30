@@ -72,7 +72,7 @@ def create_device_tool(cursor, request):
             if (category == 'TOOL'):
                 cursor.execute("INSERT INTO device_tool_list (short_name, category, sub_device) VALUES (%s, %s, %s) RETURNING id", (shortname, category, subdevice))  
                 response_data = {
-                'redirect_url': '/pulsar/pulsar/',  
+                'finaldata': 'successful', 
                 }
                 return JsonResponse(response_data) 
             else:
@@ -125,27 +125,27 @@ def create_device_tool(cursor, request):
                             new_record_id = cursor.fetchone()[0]
                             print(new_record_id)    
                         response_data = {
-                        'redirect_url': '/pulsar/pulsar/',  
+                        'finaldata': 'successful', 
                         }
                         return JsonResponse(response_data)    
                     else:
                         response_data = {
-                        'error': 'HW_ID 已存在',  # 替換成實際的重定向 URL
+                        'error': 'HW_ID already exists',  
                         }
                         return JsonResponse(response_data)  
                 else:
                     response_data = {
-                    'error': '欄位不可為空',  
+                    'error': 'Input cannot be empty',  
                     }
                     return JsonResponse(response_data)    
         else:
             response_data = {
-            'error': 'shortname名稱已有',  
+            'error': 'Shortname already exists',  
             }
             return JsonResponse(response_data)   
     else:
         response_data = {
-        'error': '欄位不可為空',  
+        'error': 'Input cannot be empty',  
         }
         return JsonResponse(response_data)
 
@@ -259,9 +259,9 @@ def create_version(cursor, request):
             print("OK")
             return JsonResponse({'finaldata': 'successful'})
         else:
-            return JsonResponse({'error': 'packageversion 已存在'})  
+            return JsonResponse({'error': 'Package version already exists'})  
     else:
-        return JsonResponse({'error': '請填寫完整 資料不可為空'}) 
+        return JsonResponse({'error': 'Please complete the form, data cannot be empty'}) 
     
 @api_view(["post"])
 @csrf_exempt

@@ -19,13 +19,13 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("polls/", include("polls.urls")),
-    path("user/", include("user.user_urls")),
-    path("mail/", include("mail.mail_urls")),
-    path("sharepoint/", include("sharepoint.sharepoint_urls")),
-    path("log/", include("log.log_urls")),
-    path("pulsar/", include("pulsar.pulsar_urls")),
-    path("cat/", include("cat.cat_urls")),
-    path("cth/", include("cth.cth_urls")),
-    path("account/", include("account.account_urls")),
+    path("api/polls/", include("polls.urls")),
+    path("api/user/", include("user.user_urls")),
+    path("api/mail/", include("mail.mail_urls")),
+    path("api/sharepoint/", include("sharepoint.sharepoint_urls")),
+    path("api/log/", include("log.log_urls")),
+    path("api/pulsar/", include("pulsar.pulsar_urls")),
+    path("api/cat/", include("cat.cat_urls")),
+    path("api/cth/", include("cth.cth_urls")),
+    path("api/account/", include("account.account_urls")),
 ]

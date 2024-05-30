@@ -13,10 +13,9 @@ def LoginRequiredMiddleware(get_response):
         if request.path in allowed_paths:
             return get_response(request)
         '''
-        allowed_paths = ['/user/', '/cth/']
+        allowed_paths = ['/api/user/', '/api/cth/']
         if any(request.path.startswith(path) for path in allowed_paths):
             return get_response(request)
-
 
         token = request.headers.get('Authorization', '').split('Bearer ')[-1]
         if not token:

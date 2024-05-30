@@ -784,3 +784,41 @@
 2024-05-21 14:33:35 - User bill.chang@hp.com: 修改: CND2512X2S 機台 // Note:None
 2024-05-21 14:49:32 - User bill.chang@hp.com: 借出: CND34513J6 機台 // Note:None
 2024-05-21 15:33:49 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 14:21:40 - User guest@none.com: Logged in // Note:None
+2024-05-22 14:57:52 - User guest@none.com: Logged in // Note:None
+2024-05-22 15:00:02 - User guest@none.com: Logged in // Note:None
+2024-05-22 15:01:55 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:13:40 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:13:44 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:13:46 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:13:50 - User guest@none.com: Logged in // Note:None
+2024-05-22 15:18:24 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:18:25 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:18:33 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:18:55 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:22:07 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:23:21 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:24:24 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:26:04 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-22 15:26:17 - User bill.chang@hp.com: 修改: CND34513J6 機台 // Note:None
+2024-05-22 16:40:15 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-27 15:32:28 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-27 15:34:22 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-27 16:53:41 - User guest@none.com: Logged in // Note:None
+2024-05-27 16:55:19 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-27 16:56:11 - User bill.chang@hp.com: 借出: 5CG32006PN 機台 // Note:None
+2024-05-28 11:12:33 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-28 11:20:39 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-29 10:57:38 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-29 11:33:50 - User bill.chang@hp.com: 歸還:5CG32006PN機台 // Note:None
+2024-05-29 11:59:43 - User guest@none.com: Logged in // Note:None
+2024-05-29 11:59:49 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-29 12:00:55 - User bill.chang@hp.com: Logged in // Note:None
+2024-05-29 14:54:12 - User bill.chang@hp.com: 入庫發信: 5CG32006PN 機台 // Note:None
+2024-05-29 14:56:38 - User bill.chang@hp.com: 入庫發信: 5CD13960HB 5CG3203W9C 機台 // Note:None
+2024-05-29 18:31:53 - User bill.chang@hp.com: 入庫發信: 5CG32006PN 機台 // Note:None
+2024-05-29 18:35:09 - User bill.chang@hp.com: 報廢: 5CG3170VV3 機台 // Note:None
+2024-05-29 18:35:27 - User bill.chang@hp.com: 入庫發信: 5CG32006PN 機台 // Note:None
+2024-05-29 18:43:16 - User bill.chang@hp.com: 入庫發信: 5CG32006PN 機台 // Note:None
+2024-05-29 18:43:28 - User bill.chang@hp.com: 歸還機台, 附加檔案: iur (18).xlsx // Note:None
+2024-05-30 10:44:30 - User bill.chang@hp.com: Logged in // Note:None

@@ -874,7 +874,7 @@ def send_mail_newplatform(cursor, request):
             iur_data.append(data)
 
         template = get_template("polls/mail_machine_arrive_template.html")
-        account = account_views.get_account
+        account = account_views.get_account(user_id)
         message = ''
         context = {
                         #'receiver':'  '.join([t.usernameincompany for t in to]),
@@ -898,7 +898,7 @@ def send_mail_newplatform(cursor, request):
         mail_views.HP_mail(account,to,cc,subject,body)
     if uploaded_file:   
         try:
-            sharepoint_views.sharepoint_upload_file(uploaded_file) 
+            sharepoint_views.sharepoint_upload_file(user_id, uploaded_file) 
             operation = f"歸還機台, 附加檔案: {uploaded_file.name}"
             log_views.log_operation(user_id, operation)
         except Exception as e:

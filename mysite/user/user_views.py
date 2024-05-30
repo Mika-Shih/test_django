@@ -13,7 +13,6 @@ import json
 from mail import mail_views as mail_views
 from log import log_views as log_views
 from django.db import connection
-from db_utils import connect_to_database
 
 def with_db_connection(func):
     def wrapper(*args, **kwargs):
@@ -21,12 +20,11 @@ def with_db_connection(func):
             return func(cursor, *args, **kwargs)
     return wrapper
 
-def sign_up(request):
-    return render(request, "polls/sign_up.html")
-
 def login(request):
-    return render(request, "polls/login.html")
+    return render(request, 'polls/login.html')
 
+def sign_up(request):
+    return render(request, 'polls/sign_up.html')
 # @api_view(["post"])
 # @csrf_exempt
 # # 創建帳號並發送激活郵件
@@ -129,9 +127,8 @@ def verify(cursor, request):
     }
     return JsonResponse(response_data)
     
-    
-def activate_account(request, activation_code):
-    conn, cursor, close_database = connect_to_database()
+@with_db_connection    
+def activate_account(cursor, request, activation_code):
     activation_code_condition = f"AND (ui.user_info->>'activation_code') IN (%s)"
     query = f'''
     SELECT user_id, user_info, ui.user_info->>'last_update_time' AS last_update_time 
@@ -156,7 +153,6 @@ def activate_account(request, activation_code):
     user_info_json = json.dumps(user_info)
     update_query = f"UPDATE user_info SET user_info = %s WHERE user_id = %s"
     cursor.execute(update_query, (user_info_json, user_id))
-    close_database()
     return HttpResponseRedirect("/user/login")
 
 
@@ -176,12 +172,14 @@ def generate_hashed_password(password):
     salt = bcrypt.gensalt()  # 生成隨機的鹽值
     hashed_password = bcrypt.hashpw(password.encode(), salt)  # 將密碼與鹽值進行哈希計算
     return hashed_password.decode()  # 將二進制哈希值轉換為字串格式
+
 # 驗證密碼是否正確
 def verify_password(password, hashed_password):
     return bcrypt.checkpw(password.encode(), hashed_password.encode())
+
 # 生成激活碼
-def activation_code_generate():
-    conn, cursor, close_database = connect_to_database()    
+@with_db_connection   
+def activation_code_generate(cursor):
     activation_code = str(uuid.uuid4())
     activation_code_condition = f"AND (ui.user_info->>'activation_code') IN (%s)"
     query = f'''
@@ -192,7 +190,6 @@ def activation_code_generate():
     cursor.execute(query, (activation_code,))
     result_activation_code=cursor.fetchone()
     print(result_activation_code)
-    close_database() 
     if result_activation_code:
         return activation_code_generate()
     else: 

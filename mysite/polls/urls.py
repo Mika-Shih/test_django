@@ -42,7 +42,7 @@ urlpatterns = [
 
     path("sharepoint_copy_file/", views.sharepoint_copy_file, name="sharepoint_copy_file"),
 
-    path("mail/", include("mail.mail_urls")),
-    path("log/", include("log.log_urls")),
-    path("user/", include("user.user_urls")),
+    # path("mail/", include("mail.mail_urls")),
+    # path("log/", include("log.log_urls")),
+    # path("user/", include("user.user_urls")),
 ]

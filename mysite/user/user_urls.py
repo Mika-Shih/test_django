@@ -10,6 +10,6 @@ urlpatterns = [
     path('activate/<str:activation_code>/', user_views.activate_account, name='activate_account'),
     path("logout/", user_views.logout, name="logout"),
     path("view_token/", user_views.view_token, name="view_token"),
-    path("mail/", include("mail.mail_urls")),
-    path("log/", include("log.log_urls")),
+    # path("mail/", include("mail.mail_urls")),
+    # path("log/", include("log.log_urls")),
 ]

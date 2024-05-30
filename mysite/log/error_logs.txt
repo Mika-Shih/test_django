@@ -176,3 +176,5 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2024-05-06 16:50:09 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD13960HB
 2024-05-06 16:51:52 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:serial_number: 5CD13960HB
 2024-05-06 16:55:26 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'str' object has no attribute 'user_email' // Note:serial_number: 5CG3170VV3
+2024-05-29 18:31:55 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/send_mail_newplatform: sharepoint_upload_file() missing 1 required positional argument: 'uploaded_file' // Note:uploaded_file_fail: iur (18).xlsx
+2024-05-29 18:35:29 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/send_mail_newplatform: sharepoint_upload_file() missing 1 required positional argument: 'uploaded_file' // Note:uploaded_file_fail: iur (18).xlsx
