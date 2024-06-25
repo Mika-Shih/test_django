@@ -178,3 +178,29 @@ HINT:  No operator matches the given name and argument types. You might need to 
 2024-05-06 16:55:26 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: 'str' object has no attribute 'user_email' // Note:serial_number: 5CG3170VV3
 2024-05-29 18:31:55 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/send_mail_newplatform: sharepoint_upload_file() missing 1 required positional argument: 'uploaded_file' // Note:uploaded_file_fail: iur (18).xlsx
 2024-05-29 18:35:29 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/send_mail_newplatform: sharepoint_upload_file() missing 1 required positional argument: 'uploaded_file' // Note:uploaded_file_fail: iur (18).xlsx
+2024-06-07 12:36:13 -  C:\Users\CHBI965\Desktop\HP\mysite\cth\cth_views.py/task_command: column "textcontent" does not exist
+LINE 2:             SELECT id, status, textcontent
+                                       ^
+HINT:  Perhaps you meant to reference the column "tut.testcontent".
+ // Note:sn_id: 68
+2024-06-07 12:38:38 -  C:\Users\CHBI965\Desktop\HP\mysite\cth\cth_views.py/task_command: column "textcontent" does not exist
+LINE 2:             SELECT id, status, textcontent
+                                       ^
+HINT:  Perhaps you meant to reference the column "tut.testcontent".
+ // Note:sn_id: 68
+2024-06-07 12:39:00 -  C:\Users\CHBI965\Desktop\HP\mysite\cth\cth_views.py/task_command: column "textcontent" does not exist
+LINE 2:             SELECT id, status, textcontent
+                                       ^
+HINT:  Perhaps you meant to reference the column "tut.testcontent".
+ // Note:sn_id: 68
+2024-06-07 14:55:57 -  C:\Users\CHBI965\Desktop\HP\mysite\cth\cth_views.py/task_command: column "textcontent" does not exist
+LINE 2:             SELECT id, status, textcontent
+                                       ^
+HINT:  Perhaps you meant to reference the column "tut.testcontent".
+ // Note:sn_id: 68
+2024-06-07 14:56:07 -  C:\Users\CHBI965\Desktop\HP\mysite\cth\cth_views.py/task_command: column "textcontent" does not exist
+LINE 2:             SELECT id, status, textcontent
+                                       ^
+HINT:  Perhaps you meant to reference the column "tut.testcontent".
+ // Note:sn_id: 68
+2024-06-21 12:20:42 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/addnewplatform: sharepoint_upload_file() missing 1 required positional argument: 'uploaded_file' // Note:uploaded_file_fail: 期末報告-電腦鼠的迷宮演算法.ppt

@@ -217,5 +217,5 @@ def view_token(cursor, request):
                 'approve': row[3],
                 'signin_url': row[4]
             }
-        token_data.append(data)
+            token_data.append(data)
     return JsonResponse ({'finaldata': token_data})

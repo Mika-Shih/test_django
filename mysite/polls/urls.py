@@ -5,6 +5,7 @@ from . import views
 app_name = "polls"
 urlpatterns = [
     path("hint_machine_arrive_mail/", views.hint_machine_arrive_mail, name="hint_machine_arrive_mail"), 
+    path("filter_option/", views.filter_option, name="filter_option"),
     path("api/filtersearch/", views.filtersearch, name="filtersearch"),
     path("api/widthsearch/", views.widthsearch, name="widthsearch"),
     path("api/target/", views.target, name="target"),

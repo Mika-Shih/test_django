@@ -64,9 +64,36 @@ def machine_tool(cursor, request):
 @api_view(["post"])
 @csrf_exempt
 @with_db_connection
-def pause_machine_tool(cursor, request):
+def stop_machine(cursor, request):
     serial_number = request.data.get('serial_number')
-    print(serial_number)
+    query = '''
+    SELECT id, status
+    FROM test_unit_list 
+    WHERE serial_number = %s
+    '''
+    cursor.execute(query, (serial_number,))
+    [test_unit_id, status] = cursor.fetchone()
+    if status == "running" or "pause":
+        query = '''
+        SELECT id
+        FROM test_unit_tasks
+        WHERE test_unit_id = %s AND status = 'stop'
+        '''
+        cursor.execute(query, (test_unit_id,))
+        result = cursor.fetchone()
+        if result:
+            return JsonResponse({"error": "status is exist"}) 
+        else:
+            cursor.execute("INSERT INTO test_unit_tasks (test_unit_id, status, add_time) VALUES (%s, %s, %s)", (test_unit_id, "stop", timenow()))    
+            return JsonResponse({"finaldata": "successful"})
+    else:
+        return JsonResponse({"error": "status is changed"}) 
+
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def pause_machine(cursor, request):
+    serial_number = request.data.get('serial_number')
     query = '''
     SELECT id, status
     FROM test_unit_list 
@@ -78,30 +105,24 @@ def pause_machine_tool(cursor, request):
         query = '''
         SELECT id
         FROM test_unit_tasks
-        WHERE test_unit_id = %s
+        WHERE test_unit_id = %s AND (status = 'pause' OR status = 'stop')
         '''
         cursor.execute(query, (test_unit_id,))
         result = cursor.fetchone()
         if result:
-            response_data = {
-                "error": "正在等待回應",
-            }
-            return JsonResponse(response_data) 
+            return JsonResponse({"error": "status is exist"}) 
         else:
-            last_update_time = timenow()
-            cursor.execute("INSERT INTO test_unit_tasks (test_unit_id, status, add_time) VALUES (%s, %s, %s)", (test_unit_id, "pause", last_update_time))    
-            response_data = {
-                "successful": "successful",
-            }
-            return JsonResponse(response_data) 
+            cursor.execute("INSERT INTO test_unit_tasks (test_unit_id, status, add_time) VALUES (%s, %s, %s)", (test_unit_id, "pause", timenow()))    
+            return JsonResponse({"finaldata": "successful"}) 
+    else:
+        return JsonResponse({"error": "status is changed"})
 
 
 @api_view(["post"])
 @csrf_exempt
 @with_db_connection
-def continue_machine_tool(cursor, request):
+def continue_machine(cursor, request):
     serial_number = request.data.get('serial_number')
-    print(serial_number)
     query = '''
     SELECT id, status
     FROM test_unit_list 
@@ -113,22 +134,17 @@ def continue_machine_tool(cursor, request):
         query = '''
         SELECT id
         FROM test_unit_tasks
-        WHERE test_unit_id = %s
+        WHERE test_unit_id = %s AND (status = 'running' OR status = 'stop') AND testcontent is NULL
         '''
         cursor.execute(query, (test_unit_id,))
         result = cursor.fetchone()
         if result:
-            response_data = {
-                "error": "正在等待回應",
-            }
-            return JsonResponse(response_data) 
+            return JsonResponse({"error": "status is exist"}) 
         else:
-            last_update_time = timenow()
-            cursor.execute("INSERT INTO test_unit_tasks (test_unit_id, status, add_time) VALUES (%s, %s, %s)", (test_unit_id, "running", last_update_time))    
-            response_data = {
-                "successful": "successful",
-            }
-            return JsonResponse(response_data)   
+            cursor.execute("INSERT INTO test_unit_tasks (test_unit_id, status, add_time) VALUES (%s, %s, %s)", (test_unit_id, "running", timenow()))    
+            return JsonResponse({"finaldata": "successful"})  
+    else:
+        return JsonResponse({"error": "status is changed"}) 
 
 '''
 [serial_number, tool_name, tool_version,
@@ -328,7 +344,8 @@ def machine_status_report(cursor, request):
     tud.issue_details_array_s0i3tos4,
     tud.issue_details_array_total,
     tud.uut_info->'IOT_CATM'->>'DeviceName', 
-    tud.uut_info->'IOT_CATM'->>'IOT_CATM_Status'
+    tud.uut_info->'IOT_CATM'->>'IOT_CATM_Status',
+    tut.tasks_array
 
     FROM test_unit_list AS tul
     LEFT JOIN platform_info AS pi ON tul.platform_id = pi.id 
@@ -402,7 +419,21 @@ def machine_status_report(cursor, request):
             unit_task.request_info,
             unit_task.result_info,
             comm_task_issue.task_id
-    ) AS tud ON tul.id = tud.test_unit_id AND tud.rn = 1;
+    ) AS tud ON tul.id = tud.test_unit_id AND tud.rn = 1
+    LEFT JOIN (
+        SELECT
+            test_unit_id, 
+            ARRAY_AGG(
+                jsonb_build_object(
+                    'status', status,
+                    'testcontent', testcontent
+                )
+            ) AS tasks_array
+        FROM 
+            test_unit_tasks
+        GROUP BY 
+            test_unit_id
+    ) AS tut ON tul.id = tut.test_unit_id;
     '''
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -475,6 +506,11 @@ def machine_status_report(cursor, request):
                 ]   if row[51] is not None else None,
                 "IOT_CATM_devicename": row[52],
                 "IOT_CATM_status": row[53] if row[52] == "FB520" else "",
+                "task_unit_array": [
+                    {"status": json.loads(data).get("status"),
+                     "testcontent": json.loads(data).get("testcontent")
+                    } for data in row[54]
+                ]   if row[54] is not None else None,
             }
             machine_list.append(machine_list_data)
         return JsonResponse(machine_list, safe=False)

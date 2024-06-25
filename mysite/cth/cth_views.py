@@ -1,26 +1,15 @@
-from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
+from django.http import JsonResponse
 #from django.template import loader
 from django.views import generic
 from django.urls import reverse
 import json
-
 from datetime import datetime, timedelta
 from dateutil.parser import parse #時間字串改回時間 用於時間比較
-from django.utils.dateparse import parse_datetime #時間用 目前沒用到
-from dateutil import parser #時間用 目前沒用到
-
 import pytz #時間區域
 #跨站偽造
 from django.views.decorators.csrf import csrf_exempt
 #post
-from rest_framework.decorators import api_view, parser_classes
-#post 掛檔
-from rest_framework.parsers import MultiPartParser
-#模板渲染
-from django.template.loader import get_template
-#清除緩存
-from django.views.decorators.cache import cache_control
+from rest_framework.decorators import api_view
 #token 屏蔽
 import jwt 
 import inspect
@@ -184,10 +173,11 @@ def end_task_machine(cursor, request):
             status = "idle"
             query = f'''
             UPDATE test_unit_list
-            SET status = %s, last_update_time = %s
+            SET status = %s, last_update_time = %s, current_issue = %s
             WHERE id = %s;
             '''
-            cursor.execute(query, (status, last_update_time, id))
+            cursor.execute(query, (status, last_update_time, "", id))
+
             status_task = "finish"
             query = f'''
             UPDATE unit_task
@@ -195,11 +185,89 @@ def end_task_machine(cursor, request):
             WHERE id = %s;
             '''
             cursor.execute(query, (status_task, finish_info_json, last_update_time, unit_task_id))
+
+            cursor.execute("DELETE FROM test_unit_tasks WHERE test_unit_id = %s AND NOT (status = 'running' AND testcontent IS NOT NULL)", (id,))
             return JsonResponse({"status": "successful"}, safe=True)
         return JsonResponse({"status": "failed"}, safe=True)
     except Exception as e:
         log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"test_unit_list_id: {id}")
 
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def task_command(cursor, request):
+    sn_id = request.data.get('sn_id')
+    command = request.data.get('command')
+    status = request.data.get('status')
+    issue = request.data.get('issue')
+    print(sn_id, command, status, issue)
+    try:
+        if command == "idle":
+            if status == "idle":
+                test_unit_id_condition = f"AND tut.test_unit_id IN (%s)"
+                status_condition = f"AND tut.status IN (%s)"
+                query = f'''
+                SELECT id, status, testcontent
+                FROM test_unit_tasks AS tut
+                WHERE 1=1 {test_unit_id_condition} {status_condition} AND testcontent IS NOT NULL AND add_time IS NOT NULL
+                ORDER BY add_time DESC
+                limit 1
+                '''
+                cursor.execute(query, (sn_id,) + ("running",))
+                result = cursor.fetchone()
+                if result:
+                    return JsonResponse({"status": result}, safe=True)
+            else:
+                return JsonResponse({"status": "fail"}, safe=True)
+        elif command == "running":
+            if status == "pause":
+                query = f'''
+                UPDATE test_unit_list AS tul
+                SET status = %s
+                WHERE id = %s
+                '''
+                cursor.execute(query, ("running", sn_id))
+                cursor.execute("DELETE FROM test_unit_tasks WHERE test_unit_id = %s AND (status = 'running' AND testcontent IS NULL)", (sn_id,))
+            status_set = set(["pause", "stop"])
+            test_unit_id_condition = f"AND tut.test_unit_id IN (%s)"
+            status_condition = f"AND tut.status IN ({', '.join(['%s'] * len(status_set))})"
+            query = f'''
+            SELECT id, status, testcontent
+            FROM test_unit_tasks AS tut
+            WHERE 1=1 {test_unit_id_condition} {status_condition} AND add_time IS NOT NULL
+            ORDER BY add_time DESC
+            limit 1
+            '''
+            cursor.execute(query, (sn_id,) + tuple(status_set))
+            result = cursor.fetchone()
+            if result:
+                return JsonResponse({"status": result}, safe=True)
+        elif command == "pause":
+            if status == "running":
+                query = f'''
+                UPDATE test_unit_list AS tul
+                SET status = %s, current_issue = %s
+                WHERE id = %s
+                '''
+                cursor.execute(query, ("pause", issue, sn_id))
+                cursor.execute("DELETE FROM test_unit_tasks WHERE test_unit_id = %s AND status = 'pause' ", (sn_id,))
+            status_set = set(["running", "stop"])
+            test_unit_id_condition = f"AND tut.test_unit_id IN (%s)"
+            status_condition = f"AND tut.status IN ({', '.join(['%s'] * len(status_set))})"
+            query = f'''
+            SELECT id, status, testcontent
+            FROM test_unit_tasks AS tut
+            WHERE 1=1 {test_unit_id_condition} {status_condition} AND testcontent IS NULL AND add_time IS NOT NULL
+            ORDER BY add_time DESC
+            limit 1
+            '''
+            cursor.execute(query, (sn_id,) + tuple(status_set))
+            result = cursor.fetchone()
+            if result:
+                return JsonResponse({"status": result}, safe=True)
+        return JsonResponse({"status": "null"}, safe=True)
+    except Exception as e:
+        log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"sn_id: {sn_id}")
 
 @api_view(["post"])
 @csrf_exempt
@@ -207,8 +275,9 @@ def end_task_machine(cursor, request):
 def task_ready(cursor, request):
     try:
         task_id = request.data.get('task_id')
-        request_info_json = request.data.get('request_info')
         uut_info_json = request.data.get('uut_info')
+        CTH_version = request.data.get('CTH_version')
+        print(task_id, uut_info_json, CTH_version)
         query = f'''
             SELECT test_unit_id, status, testcontent
             FROM test_unit_tasks AS tut
@@ -216,17 +285,38 @@ def task_ready(cursor, request):
         '''
         cursor.execute(query, (task_id,))
         result = cursor.fetchone()
-        [test_unit_id, status, testcontent] = result
-        cursor.execute("DELETE FROM test_unit_tasks WHERE id = %s", (task_id,))
-        if status == "running" and testcontent:
-            query = f'''
-                UPDATE test_unit_list
-                SET status = %s, last_update_time = %s, uut_info = %s
-                WHERE id = %s
-            '''
-            cursor.execute(query, (status,) + (timenow(),) + (uut_info_json) + (test_unit_id,)) 
-            cursor.execute("INSERT INTO unit_task (test_unit_id, request_info, uut_info, status, start_time) VALUES (%s, %s, %s, %s, %s)", (test_unit_id, testcontent, uut_info_json, status, timenow()))
-            return JsonResponse({"status": "successful"}, safe=True)
+        if result:
+            [test_unit_id, status, testcontent] = result
+            cursor.execute("DELETE FROM test_unit_tasks WHERE id = %s", (task_id,))
+            if status == "running" and testcontent:
+                request_info = {
+                    "tool_name": testcontent["tool"],
+                    "script_name": testcontent["mode"],
+                    "tool_version": CTH_version
+                }
+                request_info_json = json.dumps(request_info)
+                query = f'''
+                    UPDATE test_unit_list
+                    SET status = %s, last_update_time = %s, uut_info = %s
+                    WHERE id = %s
+                '''
+                cursor.execute(query, (status,) + (timenow(),) + (uut_info_json) + (test_unit_id,)) 
+                cursor.execute("INSERT INTO unit_task (test_unit_id, request_info, uut_info, status, start_time) VALUES (%s, %s, %s, %s, %s)", (test_unit_id, request_info_json, uut_info_json, status, timenow()))
+            elif status == "running" and not testcontent:
+                query = f'''
+                    UPDATE test_unit_list
+                    SET status = %s, last_update_time = %s
+                    WHERE id = %s
+                '''
+                cursor.execute(query, (status,) + (timenow(),) + (test_unit_id,))
+            elif status == "pause":
+                query = f'''
+                    UPDATE test_unit_list
+                    SET status = %s, last_update_time = %s, current_issue = %s
+                    WHERE id = %s
+                '''
+                cursor.execute(query, (status,) + (timenow(),) + (testcontent,) + (test_unit_id,))
+        return JsonResponse({"status": "successful"}, safe=True)
     except Exception as e:
         log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"task_id ready fail: {task_id}")
         return JsonResponse({"status": "failed"}, safe=True)

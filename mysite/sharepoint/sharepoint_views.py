@@ -167,7 +167,7 @@ class token_prove:
 
 
 import tempfile
-def sharepoint_upload_file(user ,uploaded_file, folder_path=None, file_name=None, get_share_link=False):                
+def sharepoint_upload_file(user, uploaded_file, folder_path=None, file_name=None, get_share_link=False):                
     sharepoint_upload = token_prove(user)
     if folder_path is None:
         folder_path = f'/IUR/test_folder_Bill'

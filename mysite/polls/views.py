@@ -79,16 +79,125 @@ def hint_machine_arrive_mail(cursor, request):
     }
     return JsonResponse(response_data)
 
+@api_view(["post"])
+@csrf_exempt
 @with_db_connection
-def target(cursor, request):
-    query = '''
-    SELECT DISTINCT target
-    FROM platform_info
+def filter_option(cursor, request):
+    finaldatas = request.data
+    if finaldatas["target"]:
+        targetset = set(finaldatas["target"])
+        target_condition = f"AND pi.target IN ({', '.join(['%s'] * len(targetset))})"
+    else:
+        targetset = set("")
+        target_condition = ''  
+    if finaldatas["group"]:
+        groupset = set(finaldatas["group"])
+        group_condition = f"AND pi.product_group IN ({', '.join(['%s'] * len(groupset))})"
+    else:
+        groupset = set("")
+        group_condition = ''
+    if len(finaldatas["platform"]) > 0:
+        platformset = set(finaldatas["platform"])
+    else:
+        platformset = set("") 
+    if len(finaldatas["cycle"]) > 0:
+        cycleset = set(finaldatas["cycle"])
+    else:
+        cycleset = set("")
+
+    if len(finaldatas["phase"]) > 0:
+        phaseset = set(finaldatas["phase"])
+    else:
+        phaseset = set("") 
+    print(finaldatas["status"])
+    if len(finaldatas["status"]) > 0:
+        statusset = set(finaldatas["status"])
+        if "machine_arrive_mail" in statusset :
+            statusset.remove("machine_arrive_mail")
+    else:
+        statusset = set("")
+    if any("machine_arrive_mail" in status for status in finaldatas.get("status", [])):    
+    # if finaldatas['machine_arrive_mail']:
+        machine_arrive_mail_set = set(["true"])     
+    else:
+        machine_arrive_mail_set = set("")                
+
+    platformsearch_placeholders = ', '.join(['%s'] * len(platformset))
+    cyclesearch_placeholders = ', '.join(['%s'] * len(cycleset))
+    phasesearch_placeholders = ', '.join(['%s'] * len(phaseset))
+    statussearch_placeholders = ', '.join(['%s'] * len(statusset))
+    machine_arrive_mail_search_placeholders = ', '.join(['%s'] * len(machine_arrive_mail_set))
+
+    platformsearch = tuple(platformset)
+    cyclesearch = tuple(cycleset)
+    phasesearch = tuple(phaseset)
+    statussearch = tuple(statusset)
+
+    platform_condition = ''    
+    if len(platformset) > 0:
+        platform_condition = f"AND pi.codename IN ({platformsearch_placeholders})"
+    cycle_condition = ''
+    if len(cycleset) > 0:
+        cycle_condition = f"AND pi.cycle IN ({cyclesearch_placeholders})"
+    phase_condition = ''
+    if len(phaseset) > 0:
+        phase_condition = f"AND ul.phase IN ({phasesearch_placeholders})" 
+    status_condition = ''
+    if len(statusset) > 0: 
+            status_condition = f"AND subquery.status IN ({statussearch_placeholders})"
+    machine_arrive_mail_condition = ''
+    if  machine_arrive_mail_set:
+        machine_arrive_mail_condition = f"AND ul.machine_arrive_mail IN ({machine_arrive_mail_search_placeholders})"
+    query = f'''
+        SELECT DISTINCT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, subquery.status, subquery.last_update_time
+        FROM (
+            SELECT DISTINCT ON (ur.uut_id) ur.record_id, ur.uut_id, ur.status, ur.last_update_time, ur.borrower_id, ur.remark
+            FROM unit_record AS ur
+            WHERE ur.status != 'Delete'
+            ORDER BY ur.uut_id, ur.last_update_time DESC
+        ) subquery
+        JOIN unit_list AS ul ON subquery.uut_id = ul.id
+        JOIN platform_info AS pi ON ul.platform_id = pi.id
+        LEFT JOIN user_info AS ui ON subquery.borrower_id = ui.user_id
+        WHERE subquery.uut_id NOT IN (
+            SELECT ur.uut_id
+            FROM unit_record AS ur
+            WHERE ur.status = 'Delete' 
+        ) {target_condition} {group_condition} {platform_condition} {cycle_condition} {phase_condition} {status_condition} {machine_arrive_mail_condition}
+        ORDER BY subquery.last_update_time DESC
     '''
-    cursor.execute(query)
+    cursor.execute(query, tuple(targetset) + tuple(groupset) +platformsearch+cyclesearch+phasesearch+statussearch+tuple(machine_arrive_mail_set))  #查詢  套用元組進行查詢
     rows = cursor.fetchall()
-    target = {'target': [row[0] for row in rows]}
-    return JsonResponse(target)
+    if rows:
+        platform = []
+        phase = []
+        target = []
+        group = []
+        cycle = []
+        status = []
+        for row in rows:
+            platform.append(row[0]) if row[0] and row[0] not in platform else None
+            phase.append(row[1]) if row[1] and row[1] not in phase else None
+            target.append(row[2]) if row[2] and row[2] not in target else None
+            group.append(row[3]) if row[3] and row[3] not in group else None
+            cycle.append(row[4]) if row[4] and row[4] not in cycle else None
+            status.append(row[5]) if row[5] and row[5] not in status else None
+        response_data = {
+            'finaldata': {
+                'platform': platform,
+                'phase': phase,
+                'target': target,
+                'group': group,
+                'cycle': cycle,
+                'status': status + ['machine_arrive_mail']
+            } 
+        }
+        return JsonResponse(response_data) 
+    else:
+        response_data = {
+                'error': 'No matching data' 
+                }
+        return JsonResponse(response_data) 
 
 @api_view(["post"])
 @csrf_exempt
@@ -226,6 +335,17 @@ def filtersearch(cursor, request):
                 'error': 'No matching data' 
                 }
         return JsonResponse(response_data) 
+
+@with_db_connection
+def target(cursor, request):
+    query = '''
+    SELECT DISTINCT target
+    FROM platform_info
+    '''
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    target = {'target': [row[0] for row in rows]}
+    return JsonResponse(target)
 
 @with_db_connection
 def group(cursor, request):
@@ -780,6 +900,8 @@ def scrapped_platform(cursor, request):
             return JsonResponse({'error': f"Scrap: {sn} machine failed"})
     return JsonResponse({'finaldata': 'successful'})
 
+# :x:/r open file 
+# :u:/r download file
 @api_view(["post"])
 @csrf_exempt
 @parser_classes([MultiPartParser])
@@ -790,6 +912,15 @@ def send_mail_newplatform(cursor, request):
         return JsonResponse({'error': 'Insufficient permissions'})
     finaldatas = json.loads(request.data.get('finaldata'))
     uploaded_file = request.FILES.get('file')
+    folder_choose = json.loads(request.data.get('folder_choose'))
+    print(folder_choose)
+    if uploaded_file:
+        folder_split = '/'.join(folder_choose)
+        file_path = f'https://hp.sharepoint.com/:u:/r/teams/CommunicationsTechnologyTeam/Dogfood/IUR/{folder_split}/{uploaded_file.name}'
+        file_link = f'<a href="{file_path}">{uploaded_file.name}</a>'
+        folder_path = f'/IUR/{folder_split}'
+    else:
+        file_link = ''
     for finaldata in finaldatas:
         platform = finaldata["platform"]
         phase = finaldata["phase"]
@@ -882,7 +1013,7 @@ def send_mail_newplatform(cursor, request):
                         'iur_title':iur_title,
                         'iur_data':iur_data,
                         'sender':account.get_current_user().full_name,
-                        'att_files':'None'#att_files
+                        'att_files': file_link
                     }
         body = template.render(context)
         subject = "Machines arrived"
@@ -892,13 +1023,12 @@ def send_mail_newplatform(cursor, request):
         if to:
             to = list(to.values_list('user__email',flat=True))
         '''    
-        # to = ['cmitcommsw@hp.com', 'stevencommshwall@hp.com', 'COMMsPM@hp.com']
-        to = ['bo.yu.chen@hp.com']  
+        to = ['cmitcommsw@hp.com', 'stevencommshwall@hp.com', 'COMMsPM@hp.com']
         cc = ''
         mail_views.HP_mail(account,to,cc,subject,body)
     if uploaded_file:   
         try:
-            sharepoint_views.sharepoint_upload_file(user_id, uploaded_file) 
+            sharepoint_views.sharepoint_upload_file(user_id, uploaded_file, folder_path=folder_path) 
             operation = f"歸還機台, 附加檔案: {uploaded_file.name}"
             log_views.log_operation(user_id, operation)
         except Exception as e:
@@ -1035,7 +1165,7 @@ def addnewplatform(cursor, request):
             log_views.log_operation(user_id, operation)
         if uploaded_file:
             try:
-                sharepoint_views.sharepoint_upload_file(uploaded_file)
+                sharepoint_views.sharepoint_upload_file(user_id, uploaded_file)
                 operation = f"新增附加檔案: {uploaded_file.name}"
                 log_views.log_operation(user_id, operation)
             except Exception as e:
