@@ -112,12 +112,11 @@ def filter_option(cursor, request):
     print(finaldatas["status"])
     if len(finaldatas["status"]) > 0:
         statusset = set(finaldatas["status"])
-        if "machine_arrive_mail" in statusset :
-            statusset.remove("machine_arrive_mail")
+        if "Machine arrive mail" in statusset :
+            statusset.remove("Machine arrive mail")
     else:
         statusset = set("")
-    if any("machine_arrive_mail" in status for status in finaldatas.get("status", [])):    
-    # if finaldatas['machine_arrive_mail']:
+    if any("Machine arrive mail" in status for status in finaldatas.get("status", [])):    
         machine_arrive_mail_set = set(["true"])     
     else:
         machine_arrive_mail_set = set("")                
@@ -189,7 +188,7 @@ def filter_option(cursor, request):
                 'target': target,
                 'group': group,
                 'cycle': cycle,
-                'status': status + ['machine_arrive_mail']
+                'status': status + ['Machine arrive mail']
             } 
         }
         return JsonResponse(response_data) 
@@ -233,12 +232,12 @@ def filtersearch(cursor, request):
     print(finaldatas["status"])
     if len(finaldatas["status"]) > 0:
         statusset = set(finaldatas["status"])
-        if "machine_arrive_mail" in statusset :
-            statusset.remove("machine_arrive_mail")
+        if "Machine arrive mail" in statusset :
+            statusset.remove("Machine arrive mail")
     else:
         statusset = set("")
     print
-    if any("machine_arrive_mail" in status for status in finaldatas.get("status", [])):    
+    if any("Machine arrive mail" in status for status in finaldatas.get("status", [])):    
     # if finaldatas['machine_arrive_mail']:
         machine_arrive_mail_set = set(["true"])     
     else:
