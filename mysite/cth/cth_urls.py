@@ -11,5 +11,4 @@ urlpatterns = [
     path("end_task_machine/", cth_views.end_task_machine, name="end_task_machine"),
     path("task_command/", cth_views.task_command, name="task_command"),
     path("task_ready/", cth_views.task_ready, name="task_ready"),
-    path("test_database/", cth_views.test_database, name="test_database"),
 ]

@@ -1115,6 +1115,7 @@ def addnewplatform(cursor, request):
             cycle = finaldata["cycle"]
             sku = finaldata["sku"]
             sn = finaldata["sn"]
+            acquirer = finaldata["acquirer"]
             position = finaldata["position"]
             remark = finaldata["remark"]
             platform_condition = ''
@@ -1155,12 +1156,12 @@ def addnewplatform(cursor, request):
             status="Keep On"
             last_update_time = timenow()
             
-            cursor.execute("INSERT INTO unit_list (platform_id, serial_number, phase, sku, site, position_in_site ,remark) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id" , (platform_id, sn, phase, sku, site, position, remark))
+            cursor.execute("INSERT INTO unit_list (platform_id, serial_number, phase, sku, site, position_in_site, acquirer, remark) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id" , (platform_id, sn, phase, sku, site, position, acquirer, remark))
             uut_id=cursor.fetchone()[0]
             print(uut_id)
 
             cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time, remark) VALUES (%s, %s, %s, %s)" , (uut_id, status, last_update_time, remark))
-            operation = f"修改: {sn} 機台"
+            operation = f"新增: {sn} 機台"
             log_views.log_operation(user_id, operation)
         if uploaded_file:
             try:
@@ -1269,7 +1270,7 @@ def machine_record(cursor, request):
     sn = request.data.get('sn')
     sn_condition = f"AND ul.serial_number IN (%s)"
     query = f'''
-        SELECT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, ul.sku, ul.serial_number,
+        SELECT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, ul.sku, ul.serial_number, ul.acquirer,
             ui.user_name AS borrower_name,
             ur.status, ul.position_in_site,
             ur.remark, ur.last_update_time
@@ -1292,11 +1293,12 @@ def machine_record(cursor, request):
             'cycle': row[4],
             'sku': row[5],
             'sn': row[6],
-            'borrower': row[7],
-            'status': row[8],
-            'position': row[9],
-            'remark': row[10],
-            'update_time': row[11]
+            'acquirer': row[7],
+            'borrower': row[8],
+            'status': row[9],
+            'position': row[10],
+            'remark': row[11],
+            'update_time': row[12]
         }
         iur.append(iur_data)
     return JsonResponse({'iur_data': iur})  
