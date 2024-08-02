@@ -751,13 +751,14 @@ def lendpersonnel(cursor, request):
     FROM user_info
     '''
     cursor.execute(query)
-    rows = cursor.fetchall()
+    rows = sorted(cursor.fetchall(), key=lambda row: row[0].lower()) # row is rule & rows = [(user_name1,)(user_name2,).....] // so row[0] is value = user_name
     query_mail = '''
     SELECT DISTINCT ui.user_info ->> 'user_email'
     FROM user_info AS ui
     '''
     cursor.execute(query_mail)
-    rows_mail = cursor.fetchall()
+    rows_mail = sorted(cursor.fetchall(), key=lambda row: row[0].lower())
+    print(rows, rows_mail)
     lendperson = {'user_name': [row[0] for row in rows], 'user_mail': [row_mail[0] for row_mail in rows_mail]}
     return JsonResponse(lendperson) 
 
@@ -1021,7 +1022,7 @@ def send_mail_newplatform(cursor, request):
             cc = list(cc.values_list('user__email',flat=True)) 
         if to:
             to = list(to.values_list('user__email',flat=True))
-        '''    
+        '''  
         to = ['cmitcommsw@hp.com', 'stevencommshwall@hp.com', 'COMMsPM@hp.com']
         cc = ''
         mail_views.HP_mail(account,to,cc,subject,body)

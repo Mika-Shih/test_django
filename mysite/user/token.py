@@ -13,7 +13,7 @@ def LoginRequiredMiddleware(get_response):
         if request.path in allowed_paths:
             return get_response(request)
         '''
-        allowed_paths = ['/api/user/', '/api/cth/']
+        allowed_paths = ['/api/user/login/', '/api/user/verify/', '/api/cth/']
         if any(request.path.startswith(path) for path in allowed_paths):
             return get_response(request)
 

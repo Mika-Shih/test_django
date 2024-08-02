@@ -54,5 +54,4 @@ def HP_mail(account,to,cc=None,subject='',body='',attachments:list=None):
             mail.cc.add(cc)
     if attachments:
         mail.attachments.add(attachments)
-    # if to=="bill.chang@hp.com" or to=="catherine.jia@hp.com": 
     return mail.send()      

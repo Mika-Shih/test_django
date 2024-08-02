@@ -156,70 +156,6 @@ def continue_machine(cursor, request):
         wwannet_gnss_name, wwannet_gnss_version]= result
 '''
 
-#重慶機台不登記在IUR底下 所以會沒有phase
-@with_db_connection
-def machine_report(cursor, request):
-    query = f'''
-    SELECT
-    serial_number,
-    request_info->>'tool_name', request_info->>'tool_version', 
-    uut_info->>'BIOS_Version',
-    uut_info->>'Image_Version',
-    uut_info->>'OS_Version',
-    uut_info->'WLAN'->>'Connected_WLAN_AP',
-    uut_info->'BT'->>'BT_DeviceName', uut_info->'BT'->>'BT_Driver_Version', 
-    uut_info->'LAN'->>'LAN_DeviceName', uut_info->'LAN'->>'LAN_Driver_Version', uut_info->'LAN'->>'DOCK_LAN_DeviceName', uut_info->'LAN'->>'DOCK_LAN_Driver_Version',
-    uut_info->'NFC'->>'NFC_DeviceName', uut_info->'NFC'->>'NFC_Driver_Version', 
-    uut_info->'DOCK'->>'DOCK_DeviceName', uut_info->'DOCK'->>'DOCK_Driver_Version',
-    uut_info->'WLAN'->>'WLAN_DeviceName', uut_info->'WLAN'->>'WLAN_Driver_Version',
-	uut_info->'WWAN'->'USB'->'GNSS'->>'GNSS_DeviceName', uut_info->'WWAN'->'USB'->'GNSS'->>'GNSS_Driver_Version',
-    uut_info->'WWAN'->'PCIE'->'MCD'->>'MCD_DeviceName', uut_info->'WWAN'->'PCIE'->'MCD'->>'MCD_Driver_Version',
-	uut_info->'WWAN'->'PCIE'->'UDE'->>'UDE_DeviceName', uut_info->'WWAN'->'PCIE'->'UDE'->>'UDE_Driver_Version',
-	uut_info->'WWAN'->'PCIE'->'GNSS'->>'GNSS_DeviceName', uut_info->'WWAN'->'PCIE'->'GNSS'->>'GNSS_Driver_Version',
-	uut_info->'WWAN'->'PCIE'->'MBIM'->>'MBIM_DeviceName', uut_info->'WWAN'->'PCIE'->'MBIM'->>'MBIM_Version',
-	uut_info->'WWAN'->'PCIE'->'QMUX'->>'QMUX_DeviceName', uut_info->'WWAN'->'PCIE'->'QMUX'->>'QMUX_Driver_Version',
-	uut_info->'WWAN'->'PCIE'->'WWANNET'->>'GNSS_DeviceName', uut_info->'WWAN'->'PCIE'->'WWANNET'->>'GNSS_Driver_Version',
-    (result_info->'s0'->'Idle'->>'count')::text || ' ' || (result_info->'s0'->'Idle'->>'unit')::text AS s0_idle,
-    (result_info->'s0'->'AirplaneMode'->>'count')::text || ' ' || (result_info->'s0'->'AirplaneMode'->>'unit')::text AS s0_airplanemode,
-    (result_info->'s0'->'OnlineStreaming-Test'->>'count')::text || ' ' || (result_info->'s0'->'OnlineStreaming-Test'->>'unit')::text AS s0_onlinestreaming_test,
-    result_info->'restart',
-    result_info->'s4',
-    result_info->'s0i3',
-    result_info->'s0i3tos4',
-    result_info->'total',
-	finish_time
-    uut_info->'IOT_CATM'->>'DeviceName', uut_info->'IOT_CATM'->>'IOT_CATM_Status'
-    FROM unit_task1
-    WHERE finish_time IS NOT NULL
-    ORDER BY finish_time DESC
-    limit 200;
-    '''
-    cursor.execute(query)
-    rows = cursor.fetchall()
-    if rows:
-        machine_list = []
-        for row in rows:
-            machine_list_data ={
-                "serial_number":row[0],
-                "tool_name":row[1],"tool_version":row[2],
-                "bios_version":row[3],"image_version":row[4],"os_version":row[5],"wifi":row[6],
-                "bt_name":row[7],"bt_version":row[8],"lan_name":row[9],"lan_version":row[10],
-                "dock_lan_name":row[11],"dock_lan_version":row[12],"nfc_name":row[13],"nfc_version":row[14],
-                "dock_name":row[15],"dock_version":row[16],"wlan_name":row[17],"wlan_version":row[18],
-                "usb_gnss_name":row[19],"usb_gnss_version":row[20],
-                "mcd_name":row[21],"mcd_version":row[22],"ude_name":row[23],"ude_version":row[24],
-                "pcie_gnss_name":row[25],"pcie_gnss_version":row[26],"mbim_name":row[27],"mbim_version":row[28],
-                "qmux_name":row[29],"qmux_version":row[30],
-                "wwannet_gnss_name":row[31],"wwannet_gnss_version":row[32],
-                "s0_idle":row[33],"s0_airplanemode":row[34],"s0_onlinestreaming_test":row[35],
-                "restart":row[36],"s4":row[37],"s0i3":row[38],"s0i3tos4":row[39],"total":row[40],
-                "finish_time":row[41],
-                "devicename": row[42] if row[42] == "FB520" else "",
-                "IOT_CATM_status": row[43] if row[42] == "FB520" else ""
-            }
-            machine_list.append(machine_list_data)
-    return JsonResponse(machine_list, safe=False)
-
 # @with_db_connection 
 # def machine_status_report(cursor, request):
 #     query = f'''
@@ -950,3 +886,251 @@ def create_task(cursor, request):
             cursor.execute("INSERT INTO test_unit_tasks (test_unit_id, status, testcontent, add_time) VALUES (%s, %s, %s, %s) RETURNING id" , (test_unit_id, "running", task_json, update_time))
     
     return JsonResponse({'finaldata': 'successful'})
+
+import tempfile
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection 
+def select_machine_report(cursor, request):
+    serial_number = json.loads(request.data.get('serial_number'))
+    print(serial_number)
+    if serial_number:
+        serial_number_set = set(serial_number)
+        serial_number_condition = f"AND tul.serial_number IN ({', '.join(['%s'] * len(serial_number_set))})"
+    else:
+        serial_number_set = set("")
+        serial_number_condition = ''
+          
+
+    query = f'''
+    SELECT pi.codename, ul.phase, tul.serial_number, tul.status, tul.remark,
+    tud.request_info->>'tool_name', tud.request_info->>'tool_version',
+    tud.uut_info->>'BIOS_Version',
+    tud.uut_info->>'Image_Version',
+    tud.uut_info->>'OS_Version',
+    tud.uut_info->'WLAN'->>'Connected_WLAN_AP',
+    tud.uut_info->'BT'->>'BT_DeviceName', tud.uut_info->'BT'->>'BT_Driver_Version', 
+    tud.uut_info->'LAN'->>'LAN_DeviceName', tud.uut_info->'LAN'->>'LAN_Driver_Version', tud.uut_info->'LAN'->>'DOCK_LAN_DeviceName', tud.uut_info->'LAN'->>'DOCK_LAN_Driver_Version',
+    tud.uut_info->'NFC'->>'NFC_DeviceName', tud.uut_info->'NFC'->>'NFC_Driver_Version', 
+    tud.uut_info->'DOCK'->>'DOCK_DeviceName', tud.uut_info->'DOCK'->>'DOCK_Driver_Version',
+    tud.uut_info->'WLAN'->>'WLAN_DeviceName', tud.uut_info->'WLAN'->>'WLAN_Driver_Version',
+    tud.uut_info->'WWAN'->'USB'->'GNSS'->>'GNSS_DeviceName', tud.uut_info->'WWAN'->'USB'->'GNSS'->>'GNSS_Driver_Version',
+    tud.uut_info->'WWAN'->'PCIE'->'MCD'->>'MCD_DeviceName', tud.uut_info->'WWAN'->'PCIE'->'MCD'->>'MCD_Driver_Version',
+    tud.uut_info->'WWAN'->'PCIE'->'UDE'->>'UDE_DeviceName', tud.uut_info->'WWAN'->'PCIE'->'UDE'->>'UDE_Driver_Version',
+    tud.uut_info->'WWAN'->'PCIE'->'GNSS'->>'GNSS_DeviceName', tud.uut_info->'WWAN'->'PCIE'->'GNSS'->>'GNSS_Driver_Version',
+    tud.uut_info->'WWAN'->'PCIE'->'MBIM'->>'MBIM_DeviceName', tud.uut_info->'WWAN'->'PCIE'->'MBIM'->>'MBIM_Version',
+    tud.uut_info->'WWAN'->'PCIE'->'QMUX'->>'QMUX_DeviceName', tud.uut_info->'WWAN'->'PCIE'->'QMUX'->>'QMUX_Driver_Version',
+    tud.uut_info->'WWAN'->'PCIE'->'WWANNET'->>'GNSS_DeviceName', tud.uut_info->'WWAN'->'PCIE'->'WWANNET'->>'GNSS_Driver_Version',
+    (tud.result_info->'s0'->'Idle'->>'count')::text || ' ' || (tud.result_info->'s0'->'Idle'->>'unit')::text AS s0_idle,
+    (tud.result_info->'s0'->'AirplaneMode'->>'count')::text || ' ' || (tud.result_info->'s0'->'AirplaneMode'->>'unit')::text AS s0_airplanemode,
+    (tud.result_info->'s0'->'OnlineStreaming-Test'->>'count')::text || ' ' || (tud.result_info->'s0'->'OnlineStreaming-Test'->>'unit')::text AS s0_onlinestreaming_test,
+    tud.result_info->'restart',
+    tud.result_info->'s4',
+    tud.result_info->'standby', 
+    tud.result_info->'standbytos4',
+    tud.result_info->'total',
+    tud.start_time,
+    tud.finish_time,
+    tud.issue_details_array_restart,
+    tud.issue_details_array_s4,
+    tud.issue_details_array_s0i3,
+    tud.issue_details_array_s0i3tos4,
+    tud.issue_details_array_total,
+    tud.uut_info->'IOT_CATM'->>'DeviceName', 
+    tud.uut_info->'IOT_CATM'->>'IOT_CATM_Status',
+    tut.tasks_array
+
+    FROM
+        test_unit_list AS tul
+        LEFT JOIN platform_info AS pi ON tul.platform_id = pi.id 
+        LEFT JOIN unit_list AS ul ON tul.serial_number = ul.serial_number
+        LEFT JOIN (
+            SELECT 
+                unit_task.id,
+                unit_task.test_unit_id,
+                unit_task.start_time,
+                unit_task.finish_time,
+                unit_task.uut_info,
+                unit_task.request_info,
+                unit_task.result_info,
+                comm_task_issue.task_id,
+                ARRAY_AGG(
+                    jsonb_build_object(
+                        'issue_detail', comm_task_issue.issue_info ->> 'issue_detail',
+                        'short_description', comm_task_issue.issue_short_description,
+                        'failed_device_info', comm_task_issue.failed_device_info,
+                        'servity', comm_task_issue.servity,
+                        'add_time', comm_task_issue.add_time
+                    )
+                ) FILTER (WHERE comm_task_issue.issue_info ->> 'power_state' = 'restart') AS issue_details_array_restart,
+                ARRAY_AGG(
+                    jsonb_build_object(
+                        'issue_detail', comm_task_issue.issue_info ->> 'issue_detail',
+                        'short_description', comm_task_issue.issue_short_description,
+                        'failed_device_info', comm_task_issue.failed_device_info,
+                        'servity', comm_task_issue.servity,
+                        'add_time', comm_task_issue.add_time
+                    )
+                ) FILTER (WHERE comm_task_issue.issue_info ->> 'power_state' = 's4') AS issue_details_array_s4,
+                ARRAY_AGG(
+                    jsonb_build_object(
+                        'issue_detail', comm_task_issue.issue_info ->> 'issue_detail',
+                        'short_description', comm_task_issue.issue_short_description,
+                        'failed_device_info', comm_task_issue.failed_device_info,
+                        'servity', comm_task_issue.servity,
+                        'add_time', comm_task_issue.add_time
+                    )
+                ) FILTER (WHERE comm_task_issue.issue_info ->> 'power_state' = 'standby') AS issue_details_array_s0i3,
+                ARRAY_AGG(
+                    jsonb_build_object(
+                        'issue_detail', comm_task_issue.issue_info ->> 'issue_detail',
+                        'short_description', comm_task_issue.issue_short_description,
+                        'failed_device_info', comm_task_issue.failed_device_info,
+                        'servity', comm_task_issue.servity,
+                        'add_time', comm_task_issue.add_time
+                    )
+                ) FILTER (WHERE comm_task_issue.issue_info ->> 'power_state' = 'standbytos4') AS issue_details_array_s0i3tos4,
+                ARRAY_AGG(
+                    jsonb_build_object(
+                        'issue_detail', comm_task_issue.issue_info ->> 'issue_detail',
+                        'short_description', comm_task_issue.issue_short_description,
+                        'failed_device_info', comm_task_issue.failed_device_info,
+                        'servity', comm_task_issue.servity,
+                        'add_time', comm_task_issue.add_time
+                    )
+                ) FILTER (WHERE comm_task_issue.issue_info ->> 'power_state' = 'total') AS issue_details_array_total,
+                ROW_NUMBER() OVER (PARTITION BY unit_task.test_unit_id ORDER BY unit_task.finish_time DESC) AS rn
+            FROM 
+                unit_task
+            LEFT JOIN 
+                comm_task_issue ON comm_task_issue.task_id = unit_task.id
+            GROUP BY 
+                unit_task.id,
+                unit_task.test_unit_id,
+                unit_task.start_time,
+                unit_task.finish_time,
+                unit_task.uut_info,
+                unit_task.request_info,
+                unit_task.result_info,
+                comm_task_issue.task_id
+        ) AS tud ON tul.id = tud.test_unit_id AND tud.rn = 1
+        LEFT JOIN (
+            SELECT
+                test_unit_id, 
+                ARRAY_AGG(
+                    jsonb_build_object(
+                        'status', status,
+                        'testcontent', testcontent
+                    )
+                ) AS tasks_array
+            FROM 
+                test_unit_tasks
+            GROUP BY 
+                test_unit_id
+        ) AS tut ON tul.id = tut.test_unit_id
+    WHERE
+        1=1
+        {serial_number_condition};
+    '''
+    cursor.execute(query, tuple(serial_number_set))
+    rows = cursor.fetchall()
+    if rows:
+        machine_list = []
+        for row in rows:
+            machine_list_data = {
+                "platform":row[0],
+                "phase":row[1],
+                "serial_number":row[2],
+                "status":row[3],
+                "remark":row[4],
+                "tool_name":row[5],"tool_version":row[6],
+                "bios_version":row[7],"image_version":row[8],"os_version":row[9],"wifi":row[10],
+                "bt_name":row[11],"bt_version":row[12],"lan_name":row[13],"lan_version":row[14],
+                "dock_lan_name":row[15],"dock_lan_version":row[16],"nfc_name":row[17],"nfc_version":row[18],
+                "dock_name":row[19],"dock_version":row[20],"wlan_name":row[21],"wlan_version":row[22],
+                "usb_gnss_name":row[23],"usb_gnss_version":row[24],
+                "mcd_name":row[25],"mcd_version":row[26],"ude_name":row[27],"ude_version":row[28],
+                "pcie_gnss_name":row[29],"pcie_gnss_version":row[30],"mbim_name":row[31],"mbim_version":row[32],
+                "qmux_name":row[33],"qmux_version":row[34],
+                "wwannet_gnss_name":row[35],"wwannet_gnss_version":row[36],
+                "s0_idle":row[37],"s0_airplanemode":row[38],"s0_onlinestreaming_test":row[39],
+                "restart":row[40],
+                "s4":row[41],
+                "s0i3":row[42],
+                "s0i3tos4":row[43],
+                "total":row[44],
+                "start_time":row[45],
+                "finish_time":row[46],
+                "issue_restart": [
+                    {"servity": json.loads(data).get("servity"),
+                     "short_description": json.loads(data).get("short_description"),
+                     "issue_detail": json.loads(data).get("issue_detail"),
+                     "failed_device_info": json.loads(data).get("failed_device_info"), 
+                     "add_time": json.loads(data).get("add_time")
+                     } for data in row[47]
+                ] if row[47] is not None else None,
+                "issue_s4": [
+                    {"servity": json.loads(data).get("servity"),
+                     "short_description": json.loads(data).get("short_description"),
+                     "issue_detail": json.loads(data).get("issue_detail"),
+                     "failed_device_info": json.loads(data).get("failed_device_info"), 
+                     "add_time": json.loads(data).get("add_time")
+                     } for data in row[48]
+                ] if row[48] is not None else None,
+                "issue_s0i3": [
+                    {"servity": json.loads(data).get("servity"),
+                     "short_description": json.loads(data).get("short_description"),
+                     "issue_detail": json.loads(data).get("issue_detail"),
+                     "failed_device_info": json.loads(data).get("failed_device_info"),
+                     "add_time": json.loads(data).get("add_time")
+                    } for data in row[49]
+                ]   if row[49] is not None else None,
+                "issue_s0i3tos4": [
+                    {"servity": json.loads(data).get("servity"),
+                     "short_description": json.loads(data).get("short_description"),
+                     "issue_detail": json.loads(data).get("issue_detail"),
+                     "failed_device_info": json.loads(data).get("failed_device_info"),
+                     "add_time": json.loads(data).get("add_time")
+                    } for data in row[50]
+                ]   if row[50] is not None else None,
+                "issue_total": [
+                    {"servity": json.loads(data).get("servity"),
+                     "short_description": json.loads(data).get("short_description"),
+                     "issue_detail": json.loads(data).get("issue_detail"),
+                     "failed_device_info": json.loads(data).get("failed_device_info"),
+                     "add_time": json.loads(data).get("add_time")
+                    } for data in row[51]
+                ]   if row[51] is not None else None,
+                "IOT_CATM_devicename": row[52],
+                "IOT_CATM_status": row[53] if row[52] == "FB520" else "",
+                "task_unit_array": [
+                    {"status": json.loads(data).get("status"),
+                     "testcontent": json.loads(data).get("testcontent")
+                    } for data in row[54]
+                ]   if row[54] is not None else None,
+            }
+            machine_list.append(machine_list_data)
+        machine_count = len(serial_number)    
+        total_restart = sum(int(machine_data["restart"].strip().strip('"')) if machine_data["restart"] and machine_data["restart"] != '"null"' else 0 for machine_data in machine_list)
+        total_s4 = sum(int(machine_data["s4"].strip().strip('"')) if machine_data["s4"] and machine_data["s4"] != '"null"' else 0 for machine_data in machine_list)
+        total_s0i3 = sum(int(machine_data["s0i3"].strip().strip('"')) if machine_data["s0i3"] and machine_data["s0i3"] != '"null"' else 0 for machine_data in machine_list)
+        total_s0i3tos4 = sum(int(machine_data["s0i3tos4"].strip().strip('"')) if machine_data["s0i3tos4"] and machine_data["s0i3tos4"] != '"null"' else 0 for machine_data in machine_list)
+        total = sum(int(machine_data["total"].strip().strip('"')) if machine_data["total"] and machine_data["total"] != '"null"' else 0 for machine_data in machine_list)
+        # idle = sum(int(machine_data["s0_idle"].split()[0].strip().strip('"')) for machine_data in machine_list if machine_data["s0_idle"] is not None)
+        template = get_template("polls/machine_report.html")
+        print(machine_count, total_restart, total_s4, total_s0i3, total_s0i3tos4, total)
+        context = {
+            'machine_count': machine_count,
+            'total_restart': total_restart,
+            'total_s4': total_s4,
+            'total_s0i3': total_s0i3,
+            'total_s0i3tos4': total_s0i3tos4,
+            'total': total,
+        }
+        html_content = template.render(context)
+        temp_dir = tempfile.mkdtemp()
+        file_name = "machine_report.html"
+        file_path = os.path.join(temp_dir, file_name)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        return FileResponse(open(file_path, 'rb'))

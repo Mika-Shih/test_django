@@ -3,15 +3,18 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonRespons
 from rest_framework.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timedelta
-import psycopg2
 import jwt
 import bcrypt
 import pytz #時間區域
 from dateutil.parser import parse #時間字串改回時間 用於時間比較
 import uuid #亂數碼
+import hashlib, hmac, base64
 import json
+from django.template.loader import get_template
 from mail import mail_views as mail_views
+from account import account_views as account_views
 from log import log_views as log_views
+from user.token import LoginRequiredMiddleware
 from django.db import connection
 
 def with_db_connection(func):
@@ -123,10 +126,63 @@ def verify(cursor, request):
             }
             return JsonResponse(response_data)       
     response_data = {
-    'error': 'account or password error',  # 替換成實際的重定向 URL
+    'error': 'account or password error', 
     }
     return JsonResponse(response_data)
-    
+
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def change_password(cursor, request):
+    user_id = request.user_id
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+    accont_condition = f"AND (ui.user_info->>'user_email') IN (%s)" 
+    query = f'''
+    SELECT user_id, ui.user_info->>'password' AS password 
+    FROM user_info AS ui
+    WHERE 1=1 {accont_condition}
+    '''
+    cursor.execute(query, (user_id,)) 
+    result=cursor.fetchone()
+    [id, hashed_password]=result
+    verify = verify_password(old_password, hashed_password) 
+    if verify:
+        key = 'change-password'
+        A = str(uuid.uuid4())
+        B = base64.urlsafe_b64encode(hmac.new(key.encode(), A.encode(), hashlib.sha256).digest()).decode()[:7]
+        system_mail(user='bill.chang@hp.com', to=user_id, message=B)
+        response_data = {
+        'finaldata': A, 
+        }
+    else:
+        response_data = {
+        'error': 'account or password error', 
+        }
+    return JsonResponse(response_data)
+
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def active_code(cursor, request):
+    A = request.data.get('A')
+    B = request.data.get('B')
+    newpassword = request.data.get('newpassword')
+    key = 'change-password'
+    expected_B = base64.urlsafe_b64encode(hmac.new(key.encode(), A.encode(), hashlib.sha256).digest()).decode()[:7]
+    if B == expected_B:
+        response_data = {
+            'error': 'account or password error', 
+        }
+    else:
+        response_data = {
+            'error': 'activate code error', 
+        }    
+    return JsonResponse(response_data)   
+        
+
+
 @with_db_connection    
 def activate_account(cursor, request, activation_code):
     activation_code_condition = f"AND (ui.user_info->>'activation_code') IN (%s)"
@@ -219,3 +275,38 @@ def view_token(cursor, request):
             }
             token_data.append(data)
     return JsonResponse ({'finaldata': token_data})
+
+
+def system_mail(user,request=None,to=None,cc=None,message:str=''):
+    template = get_template("polls/activate_code.html")
+    account = account_views.get_account(user)
+    if to:
+        to_user = to.split('@')[0]
+    if account:
+        context = {
+                    'receiver':to_user,
+                    'message':message,
+                }
+        body = template.render(context)
+        subject = "Activate code"   
+        return mail_views.HP_mail(account,to,cc,subject,body)
+    
+@with_db_connection
+def member(cursor, request):
+    query = f'''
+    SELECT ui.user_name, ui.user_info -> 'user_email', ui.user_site
+    FROM user_info AS ui
+    WHERE ui.user_name != '' and ui.user_name != 'GUEST';
+    '''
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    if rows:
+        member_data = []
+        for row in rows:
+            data = {
+                'name': row[0],
+                'email': row[1],
+                'site': row[2],
+            }
+            member_data.append(data)
+    return JsonResponse ({'finaldata': member_data})

@@ -1,0 +1,84 @@
+<html>
+
+<head>
+    <style type="text/css">
+        .tg {
+            border-collapse: collapse;
+            border-color: #ccc;
+            border-spacing: 0;
+        }
+
+        .tg td {
+            background-color: #fff;
+            border-color: #ccc;
+            border-style: solid;
+            border-width: 1px;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            overflow: hidden;
+            padding: 3px 20px;
+            word-break: normal;
+        }
+
+        .tg th {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+            border-style: solid;
+            border-width: 1px;
+            color: #333;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+            overflow: hidden;
+            padding: 3px 20px;
+            word-break: normal;
+        }
+
+        .tg .tg-p0uq {
+            background-color: #ffffff;
+            font-weight: bold;
+            position: -webkit-sticky;
+            position: sticky;
+            text-align: center;
+            top: -1px;
+            vertical-align: top;
+            will-change: transform
+        }
+
+        .tg .tg-9upd {
+            background-color: #ffffff;
+            border-color: inherit;
+            font-weight: bold;
+            position: -webkit-sticky;
+            position: sticky;
+            text-align: center;
+            top: -1px;
+            vertical-align: top;
+            will-change: transform
+        }
+
+        .tg .tg-6sgx {
+            background-color: #ffffff;
+            text-align: left;
+            vertical-align: top
+        }
+
+        .tg .tg-gaf0 {
+            background-color: #ecf4ff;
+        }
+    </style>
+</head>
+
+<body>
+    Hi {{ receiver }}:
+
+    <p>The following is the activate code.</p>
+    <br>
+    {% if message %}
+    <p>{{ message }}</p>
+    <br>
+    {% endif %}
+</body>
+
+</html>
