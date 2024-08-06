@@ -90,8 +90,7 @@ def sign_up(request):
 def verify(cursor, request):
     username = request.data.get('email')
     password = request.data.get('password')
-    user = (username, password)
-    print(user)
+    print(username)
     certificate = 'True'
     certificate_condition = f"AND (ui.user_info->>'certificate') IN (%s)"
     accont_condition = f"AND (ui.user_info->>'user_email') IN (%s)"      
@@ -138,6 +137,11 @@ def change_password(cursor, request):
     old_password = request.data.get('old_password')
     new_password = request.data.get('new_password')
     confirm_password = request.data.get('confirm_password')
+    if new_password != confirm_password:
+        response_data = {
+            'error': 'New password and confirm password do not match.', 
+        }
+        return JsonResponse(response_data)
     accont_condition = f"AND (ui.user_info->>'user_email') IN (%s)" 
     query = f'''
     SELECT user_id, ui.user_info->>'password' AS password 
@@ -158,7 +162,7 @@ def change_password(cursor, request):
         }
     else:
         response_data = {
-        'error': 'account or password error', 
+        'error': 'password error', 
         }
     return JsonResponse(response_data)
 
@@ -166,14 +170,27 @@ def change_password(cursor, request):
 @csrf_exempt
 @with_db_connection
 def active_code(cursor, request):
+    user_id = request.user_id
     A = request.data.get('A')
     B = request.data.get('B')
-    newpassword = request.data.get('newpassword')
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+    if new_password != confirm_password:
+        response_data = {
+            'error': 'New password and confirm password do not match.', 
+        }
+        return JsonResponse(response_data)
     key = 'change-password'
     expected_B = base64.urlsafe_b64encode(hmac.new(key.encode(), A.encode(), hashlib.sha256).digest()).decode()[:7]
     if B == expected_B:
+        query = '''
+        UPDATE user_info AS ui
+        SET user_info = jsonb_set(user_info, '{password}', %s::jsonb)
+         WHERE user_info->>'user_email' = %s
+        '''
+        cursor.execute(query, (json.dumps(generate_hashed_password(new_password)), user_id))
         response_data = {
-            'error': 'account or password error', 
+            'finaldata': 'password change success', 
         }
     else:
         response_data = {

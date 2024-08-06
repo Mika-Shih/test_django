@@ -136,6 +136,14 @@ class token_prove:
             if item.is_folder: 
                 folder.append(item.name)
         return folder
+    def file_from_sharepoint(self, path: str):
+        file = []
+        try:
+            for item in self.get_validation_lib.get_item_by_path(path).get_items(): 
+                file.append(item.name)
+            return file    
+        except:
+            return file
     def upload_to_path(self, path: str, file_path: str):
             try:
                 print(self.get_validation_lib)
@@ -201,3 +209,11 @@ def get_iur_sharepoint_folder(user, folder_choose):
     folder_path = f'/IUR/{folder_string}'
     folder_name = sp_instance.iur_from_sharepoint(folder_path)
     return  folder_name
+
+def get_sharepoint_file_location(user, folder_choose):
+    sp_instance = token_prove(user)
+    folder_choose = [item for item in folder_choose if item.strip()]
+    folder_string = '/'.join(folder_choose)
+    folder_path = f'/IUR/{folder_string}'
+    file_name = sp_instance.file_from_sharepoint(folder_path)
+    return  file_name

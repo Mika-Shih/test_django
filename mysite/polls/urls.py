@@ -40,7 +40,7 @@ urlpatterns = [
 
     path("excel_export/", views.excel_export, name="excel_export"),
     path("sharepoint_name_user/", views.sharepoint_name_user, name="sharepoint_name_user"),
-
+    path("file_location/", views.file_location, name="file_location"),
     path("sharepoint_copy_file/", views.sharepoint_copy_file, name="sharepoint_copy_file"),
 
     # path("mail/", include("mail.mail_urls")),

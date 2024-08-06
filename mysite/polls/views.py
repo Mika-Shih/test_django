@@ -913,14 +913,28 @@ def send_mail_newplatform(cursor, request):
     finaldatas = json.loads(request.data.get('finaldata'))
     uploaded_file = request.FILES.get('file')
     folder_choose = json.loads(request.data.get('folder_choose'))
+    file_choose = json.loads(request.data.get('file_choose'))
+    choose = json.loads(request.data.get('choose'))
     print(folder_choose)
-    if uploaded_file:
-        folder_split = '/'.join(folder_choose)
-        file_path = f'https://hp.sharepoint.com/:u:/r/teams/CommunicationsTechnologyTeam/Dogfood/IUR/{folder_split}/{uploaded_file.name}'
-        file_link = f'<a href="{file_path}">{uploaded_file.name}</a>'
-        folder_path = f'/IUR/{folder_split}'
+    if choose:
+        if uploaded_file:
+            folder_split = '/'.join(folder_choose)
+            file_path = f'https://hp.sharepoint.com/:u:/r/teams/CommunicationsTechnologyTeam/Dogfood/IUR/{folder_split}/{uploaded_file.name}'
+            file_link = f'<a href="{file_path}">{uploaded_file.name}</a>'
+            folder_path = f'/IUR/{folder_split}'
+            try:
+                sharepoint_views.sharepoint_upload_file(user_id, uploaded_file, folder_path=folder_path) 
+                operation = f"歸還機台, 附加檔案: {uploaded_file.name}"
+                log_views.log_operation(user_id, operation)
+            except Exception as e:
+                log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"uploaded_file_fail: {uploaded_file.name}")
+                return JsonResponse({'error': f"Attached file: {uploaded_file.name} upload failed."})
+        else:
+            file_link = ''
     else:
-        file_link = ''
+        file_split = '/'.join(file_choose)
+        file_path = f'https://hp.sharepoint.com/:x:/r/teams/CommunicationsTechnologyTeam/Dogfood/IUR/{file_split}'
+        file_link = f'<a href="{file_path}">{file_choose[-1]}</a>'
     for finaldata in finaldatas:
         platform = finaldata["platform"]
         phase = finaldata["phase"]
@@ -1026,14 +1040,6 @@ def send_mail_newplatform(cursor, request):
         to = ['cmitcommsw@hp.com', 'stevencommshwall@hp.com', 'COMMsPM@hp.com']
         cc = ''
         mail_views.HP_mail(account,to,cc,subject,body)
-    if uploaded_file:   
-        try:
-            sharepoint_views.sharepoint_upload_file(user_id, uploaded_file, folder_path=folder_path) 
-            operation = f"歸還機台, 附加檔案: {uploaded_file.name}"
-            log_views.log_operation(user_id, operation)
-        except Exception as e:
-            log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"uploaded_file_fail: {uploaded_file.name}")
-            return JsonResponse({'error': f"附加檔案: {uploaded_file.name} 上傳失敗"})
     response_data = {
         'finaldata': 'successful', 
         }
@@ -1430,6 +1436,14 @@ def sharepoint_name_user(request):
     folder_name = sharepoint_views.get_iur_sharepoint_folder(user_id, folder_choose)
     print(folder_name)
     return JsonResponse({'folder_name': folder_name})
+
+@api_view(["post"])
+@csrf_exempt
+def file_location(request):
+    user_id = request.user_id
+    file_choose = request.data.get('file_choose')
+    file_name = sharepoint_views.get_sharepoint_file_location(user_id, file_choose)
+    return JsonResponse({'file_name': file_name})
 
 
 def timenow():

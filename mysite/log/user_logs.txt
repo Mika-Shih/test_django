@@ -955,3 +955,12 @@
 2024-08-02 15:09:32 - User bill.chang@hp.com: Logged in // Note:None
 2024-08-02 16:34:31 - User guest@none.com: Logged in // Note:None
 2024-08-02 16:36:05 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-02 17:07:28 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-05 15:48:34 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-05 18:43:53 - User bill.chang@hp.com: 入庫發信: 8CN47700HV 機台 // Note:None
+2024-08-05 18:48:13 - User bill.chang@hp.com: 入庫發信: 8CN47700HV 8CN47700HW 機台 // Note:None
+2024-08-05 18:55:55 - User bill.chang@hp.com: 歸還機台, 附加檔案: iur (22).xlsx // Note:None
+2024-08-05 18:55:55 - User bill.chang@hp.com: 入庫發信: 8CN47700HV 機台 // Note:None
+2024-08-05 19:00:05 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-05 21:45:15 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-05 21:47:12 - User bill.chang@hp.com: Logged in // Note:None
