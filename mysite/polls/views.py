@@ -222,6 +222,7 @@ def filtersearch(cursor, request):
     else:
         cycleset = set("")
     if len(finaldatas["SN"]) > 0:
+        finaldatas["SN"] = [value.strip() for value in finaldatas["SN"] if value.strip()]
         SNset = set(finaldatas["SN"])
     else:
         SNset = set("")
@@ -911,17 +912,18 @@ def send_mail_newplatform(cursor, request):
     if account_views.user_account_approve(user_id) == False:
         return JsonResponse({'error': 'Insufficient permissions'})
     finaldatas = json.loads(request.data.get('finaldata'))
-    uploaded_file = request.FILES.get('file')
-    folder_choose = json.loads(request.data.get('folder_choose'))
+    folder_length = json.loads(request.data.get('folder_length'))
     file_choose = json.loads(request.data.get('file_choose'))
-    choose = json.loads(request.data.get('choose'))
-    print(folder_choose)
-    if choose:
+    file_list = []
+    for index in range(int(folder_length)):
+        uploaded_file = request.FILES.get(f'folder_choose[{index}][file]')
+        folder_choose = json.loads(request.data.get(f'folder_choose[{index}][folder_path]'))
         if uploaded_file:
             folder_split = '/'.join(folder_choose)
             file_path = f'https://hp.sharepoint.com/:u:/r/teams/CommunicationsTechnologyTeam/Dogfood/IUR/{folder_split}/{uploaded_file.name}'
             file_link = f'<a href="{file_path}">{uploaded_file.name}</a>'
             folder_path = f'/IUR/{folder_split}'
+            file_list.append(file_link)
             try:
                 sharepoint_views.sharepoint_upload_file(user_id, uploaded_file, folder_path=folder_path) 
                 operation = f"歸還機台, 附加檔案: {uploaded_file.name}"
@@ -929,12 +931,11 @@ def send_mail_newplatform(cursor, request):
             except Exception as e:
                 log_views.log_error(__file__, inspect.currentframe().f_code.co_name, e, f"uploaded_file_fail: {uploaded_file.name}")
                 return JsonResponse({'error': f"Attached file: {uploaded_file.name} upload failed."})
-        else:
-            file_link = ''
-    else:
-        file_split = '/'.join(file_choose)
+    for file in file_choose:
+        file_split = '/'.join(file)
         file_path = f'https://hp.sharepoint.com/:x:/r/teams/CommunicationsTechnologyTeam/Dogfood/IUR/{file_split}'
-        file_link = f'<a href="{file_path}">{file_choose[-1]}</a>'
+        file_link = f'<a href="{file_path}">{file[-1]}</a>'
+        file_list.append(file_link)
     for finaldata in finaldatas:
         platform = finaldata["platform"]
         phase = finaldata["phase"]
@@ -1027,7 +1028,7 @@ def send_mail_newplatform(cursor, request):
                         'iur_title':iur_title,
                         'iur_data':iur_data,
                         'sender':account.get_current_user().full_name,
-                        'att_files': file_link
+                        'att_files': file_list
                     }
         body = template.render(context)
         subject = "Machines arrived"

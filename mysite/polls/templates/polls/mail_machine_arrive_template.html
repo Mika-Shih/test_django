@@ -110,10 +110,11 @@
 
     </tbody>
   </table>
-  
   {% if att_files %}
-  <p>Attached file: {{ att_files|safe }}</p>
-  <br>
+  <p>If you want to check the platform config, please click this link as below:</p>
+  {% for file in att_files %}
+  <p>{{ file|safe }}</p>
+  {% endfor %}
   {% endif %}
   <br>
   Regards<br>

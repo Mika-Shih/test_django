@@ -272,6 +272,9 @@ def activation_code_generate(cursor):
 # view account token 
 @with_db_connection
 def view_token(cursor, request):
+    user_id = request.user_id
+    if account_views.user_account_approve(user_id) == False:
+        return JsonResponse({'error': 'Insufficient permissions'})
     query = f'''
     SELECT ui.user_info -> 'user_email' , ui.user_info -> 'token' ->> 'appid', ui.user_info -> 'token' ->> 'secret',
     ui.user_info -> 'token' ->> 'approve', ui.user_info -> 'token' ->> 'signin_url'
