@@ -40,12 +40,12 @@ from django.template.loader import get_template
 #mail    
 def HP_mail(account,to,cc=None,subject='',body='',attachments:list=None):
     mail = account.new_message()
-    to = 'bill.chang@hp.com'
+    # to = 'bill.chang@hp.com'
     #to = 'catherine.jia@hp.com'
     mail.to.add(to)
     mail.body=body
     mail.subject = subject
-    cc = 'bill.chang@hp.com'
+    # cc = 'bill.chang@hp.com'
     # cc = 'catherine.jia@hp.com'
     if cc:
         if isinstance(cc, list):
