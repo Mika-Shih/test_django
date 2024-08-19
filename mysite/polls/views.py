@@ -288,7 +288,7 @@ def filtersearch(cursor, request):
         SELECT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, ul.sku, ul.serial_number,
             ui.user_name AS borrower_name,
             subquery.status, ul.position_in_site,
-            subquery.remark, subquery.last_update_time
+            ul.remark, subquery.last_update_time
         FROM (
             SELECT DISTINCT ON (ur.uut_id) ur.record_id, ur.uut_id, ur.status, ur.last_update_time, ur.borrower_id, ur.remark
             FROM unit_record AS ur
@@ -506,7 +506,7 @@ def widthsearch(cursor, request):   #SN/platform/borrower
         SELECT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, ul.sku, ul.serial_number,
             ui.user_name AS borrower_name,
             subquery.status, ul.position_in_site,
-            subquery.remark, subquery.last_update_time
+            ul.remark, subquery.last_update_time
         FROM (
             SELECT DISTINCT ON (ur.uut_id) ur.record_id, ur.uut_id, ur.status, ur.last_update_time, ur.borrower_id, ur.remark
             FROM unit_record AS ur
@@ -718,10 +718,10 @@ def returnplatform(cursor, request):
                 'sku': sku,  
                 'sn': sn,
                 'borrower_id': borrower,
+                'purpose': purpose,
                 'rent_time': borrower_time.strftime("%B %d, %Y, %I:%M %p"), 
                 'back_time': last_update_time.strftime("%B %d, %Y, %I:%M %p")    
                 }
-            
             if borrower_mail in borrower_dict:
                 borrower_dict[borrower_mail].append(iur_data)
             else:
@@ -810,7 +810,6 @@ def lendplatform(cursor, request):
             platform_id = result_ul[1]
             phase = result_ul[2]
             sku = result_ul[3]
-            remark = result_ul[6]
             
             rusult_pi = platform_id_to_platform_info(platform_id)
             platform = rusult_pi[0]
@@ -830,8 +829,7 @@ def lendplatform(cursor, request):
 
             newstatus = 'Rent'
             last_update_time = timenow()
-            cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time, borrower_id, remark) VALUES (%s, %s, %s, %s, %s)", (uut_id, newstatus, last_update_time, borrower_id, remark))
-            print(last_update_time)
+            cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time, borrower_id, remark) VALUES (%s, %s, %s, %s, %s)", (uut_id, newstatus, last_update_time, borrower_id, purpose))
             iur_data = { 
                 'platform': platform,
                 'phase': phase,
@@ -893,7 +891,7 @@ def scrapped_platform(cursor, request):
 
             newstatus = 'Scrapped'
             last_update_time = timenow()
-            cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time, remark) VALUES (%s, %s, %s, %s)", (uut_id, newstatus, last_update_time, remark))
+            cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time) VALUES (%s, %s, %s)", (uut_id, newstatus, last_update_time))
             operation = f"報廢: {sn} 機台"
             log_views.log_operation(user_id, operation)
         except Exception as e:
@@ -1199,7 +1197,7 @@ def deleteplatform(cursor, request):
             return JsonResponse({'error': 'Please ensure that the status of each machine is Keep On'})
     for finaldata in finaldatas:
         sn = finaldata["sn"]
-        remark = finaldata["remark"]
+        # remark = finaldata["remark"]
 
         sn_condition = ''
         snparams = []
@@ -1216,7 +1214,7 @@ def deleteplatform(cursor, request):
 
         status='Delete'
         last_update_time = timenow()
-        cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time, remark) VALUES (%s, %s, %s, %s)" , (uut_id, status, last_update_time, remark))
+        cursor.execute("INSERT INTO unit_record (uut_id, status, last_update_time) VALUES (%s, %s, %s)" , (uut_id, status, last_update_time))
         operation = f"刪除: {sn} 機台"
         log_views.log_operation(user_id, operation)
 
@@ -1278,7 +1276,7 @@ def machine_record(cursor, request):
     sn = request.data.get('sn')
     sn_condition = f"AND ul.serial_number IN (%s)"
     query = f'''
-        SELECT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, ul.sku, ul.serial_number, ul.acquirer,
+        SELECT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, ul.sku, ul.serial_number, ul.acquirer, ul.remark,
             ui.user_name AS borrower_name,
             ur.status, ul.position_in_site,
             ur.remark, ur.last_update_time
@@ -1302,11 +1300,12 @@ def machine_record(cursor, request):
             'sku': row[5],
             'sn': row[6],
             'acquirer': row[7],
-            'borrower': row[8],
-            'status': row[9],
-            'position': row[10],
-            'remark': row[11],
-            'update_time': row[12]
+            'remark': row[8],
+            'borrower': row[9],
+            'status': row[10],
+            'position': row[11],
+            'purpose': row[12],
+            'update_time': row[13]
         }
         iur.append(iur_data)
     return JsonResponse({'iur_data': iur})  

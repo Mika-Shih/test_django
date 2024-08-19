@@ -31,19 +31,13 @@ urlpatterns = [
     path("addnewplatform/", views.addnewplatform, name="addnewplatform"),
 
     path('scrapped_platform/', views.scrapped_platform, name='scrapped_platform'),
-
     # path("proxy_mail/", views.proxy_mail, name="proxy_mail"),
-    
     path("machine_record/", views.machine_record, name="machine_record"),
     
     path("user_info_mail/", views.user_info_mail, name="user_info_mail"),
 
     path("excel_export/", views.excel_export, name="excel_export"),
-    path("sharepoint_name_user/", views.sharepoint_name_user, name="sharepoint_name_user"),
-    path("file_location/", views.file_location, name="file_location"),
+    path("sharepoint_name_user/", views.sharepoint_name_user, name="sharepoint_name_user"), #choose_folder
+    path("file_location/", views.file_location, name="file_location"), #choose_file
     path("sharepoint_copy_file/", views.sharepoint_copy_file, name="sharepoint_copy_file"),
-
-    # path("mail/", include("mail.mail_urls")),
-    # path("log/", include("log.log_urls")),
-    # path("user/", include("user.user_urls")),
 ]
