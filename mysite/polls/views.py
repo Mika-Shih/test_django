@@ -759,7 +759,6 @@ def lendpersonnel(cursor, request):
     '''
     cursor.execute(query_mail)
     rows_mail = sorted(cursor.fetchall(), key=lambda row: row[0].lower())
-    print(rows, rows_mail)
     lendperson = {'user_name': [row[0] for row in rows], 'user_mail': [row_mail[0] for row_mail in rows_mail]}
     return JsonResponse(lendperson) 
 

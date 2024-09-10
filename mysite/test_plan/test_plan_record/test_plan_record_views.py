@@ -2,6 +2,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from django.db import connection
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
 import json
 
 # Create View for Test Item
@@ -141,7 +142,8 @@ def update_plan_record_status(request, plan_id):
         return JsonResponse({'id': plan_id})
     else:
         return JsonResponse({'error': 'Invalid request method.'}, status=405)
-
+    
+@api_view(['POST'])
 @csrf_exempt
 def delete_plan_record(request):
     if request.method == 'POST':

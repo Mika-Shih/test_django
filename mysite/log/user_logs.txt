@@ -1125,3 +1125,60 @@
 2024-08-19 17:05:45 - User bill.chang@hp.com: 歸還:CND4281YL0機台 // Note:None
 2024-08-19 17:08:06 - User bill.chang@hp.com: Logged in // Note:None
 2024-08-19 17:08:09 - User guest@none.com: Logged in // Note:None
+2024-08-20 14:54:07 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-20 14:55:57 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-20 14:59:53 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-20 14:59:56 - User guest@none.com: Logged in // Note:None
+2024-08-20 15:00:03 - User guest@none.com: Logged in // Note:None
+2024-08-20 15:00:18 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-20 15:06:10 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-20 15:06:15 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-20 16:02:42 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-21 10:21:07 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-22 15:38:29 - User guest@none.com: Logged in // Note:None
+2024-08-22 15:38:35 - User guest@none.com: Logged in // Note:None
+2024-08-22 15:38:39 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-23 15:43:53 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-26 15:28:43 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-26 16:49:42 - User bill.chang@hp.com: 報廢: CND4281X3B 機台 // Note:None
+2024-08-26 16:56:04 - User bill.chang@hp.com: 刪除: 5CD2487CHV 機台 // Note:None
+2024-08-26 16:57:31 - User bill.chang@hp.com: 借出: CND4281YL0 機台 // Note:None
+2024-08-26 17:10:40 - User bill.chang@hp.com: 歸還:CND4281YL0機台 // Note:None
+2024-08-27 14:06:26 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-27 15:00:10 - User bill.chang@hp.com: 入庫發信: CND4281YL0 機台 // Note:None
+2024-08-27 15:01:22 - User bill.chang@hp.com: 入庫發信: CND4281YL0 機台 // Note:None
+2024-08-27 16:03:13 - User bill.chang@hp.com: 歸還:5CG0514C8L機台 // Note:None
+2024-08-27 16:03:13 - User bill.chang@hp.com: 歸還:5CD026382L機台 // Note:None
+2024-08-27 16:03:13 - User bill.chang@hp.com: 歸還:5CD3518QY3機台 // Note:None
+2024-08-27 16:03:16 - User bill.chang@hp.com: 借出: 5CG0514C8L 機台 // Note:None
+2024-08-27 16:03:16 - User bill.chang@hp.com: 借出: 5CD026382L 機台 // Note:None
+2024-08-27 16:03:16 - User bill.chang@hp.com: 借出: 5CD3518QY3 機台 // Note:None
+2024-08-27 16:12:38 - User bill.chang@hp.com: 歸還:5CD3518QY3機台 // Note:None
+2024-08-27 16:17:01 - User bill.chang@hp.com: 歸還:5CD026382L機台 // Note:None
+2024-08-27 16:17:01 - User bill.chang@hp.com: 歸還:5CG0514C8L機台 // Note:None
+2024-08-27 16:17:03 - User bill.chang@hp.com: 借出: 5CD026382L 機台 // Note:None
+2024-08-27 16:17:03 - User bill.chang@hp.com: 借出: 5CG0514C8L 機台 // Note:None
+2024-08-27 20:31:13 - User bill.chang@hp.com: 新增: 0456056 機台 // Note:None
+2024-08-27 20:31:13 - User bill.chang@hp.com: 新增: 0456065 機台 // Note:None
+2024-08-27 20:31:13 - User bill.chang@hp.com: 新增: 04560456 機台 // Note:None
+2024-08-27 20:31:13 - User bill.chang@hp.com: 新增: 056406 機台 // Note:None
+2024-08-27 20:31:46 - User bill.chang@hp.com: 修改: 056406 機台 // Note:None
+2024-08-27 20:32:23 - User bill.chang@hp.com: 借出: 056406 機台 // Note:None
+2024-08-27 20:32:33 - User bill.chang@hp.com: 歸還:056406機台 // Note:None
+2024-08-27 20:33:19 - User bill.chang@hp.com: 刪除: 056406 機台 // Note:None
+2024-08-27 20:33:19 - User bill.chang@hp.com: 刪除: 04560456 機台 // Note:None
+2024-08-27 20:33:39 - User bill.chang@hp.com: 歸還:5CG0514C8L機台 // Note:None
+2024-08-27 20:33:39 - User bill.chang@hp.com: 歸還:5CD026382L機台 // Note:None
+2024-08-27 20:33:40 - User bill.chang@hp.com: 借出: 5CG0514C8L 機台 // Note:None
+2024-08-27 20:33:40 - User bill.chang@hp.com: 借出: 5CD026382L 機台 // Note:None
+2024-08-28 11:17:44 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-29 15:18:18 - User bill.chang@hp.com: Logged in // Note:None
+2024-08-29 15:54:35 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-01 23:49:17 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-02 17:21:38 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-03 16:29:48 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-04 10:52:14 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-05 11:08:52 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-06 14:35:32 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-09 14:08:35 - User bill.chang@hp.com: Logged in // Note:None
+2024-09-10 11:11:54 - User bill.chang@hp.com: Logged in // Note:None
