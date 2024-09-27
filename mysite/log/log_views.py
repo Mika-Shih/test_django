@@ -29,6 +29,13 @@ def cth_log_error(file_name, function, operation, note=None):
     with open("log\\cth_error_logs.txt", "a", encoding="utf-8") as log_file:
         log_file.write(log_entry)
 
+def test_plan_log(user_id, operation, note=None):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_entry = f"{timestamp} - User {user_id}: {operation} // Note:{note}\n"
+
+    with open("log\\test_plan_logs.txt", "a", encoding="utf-8") as log_file:
+        log_file.write(log_entry)
+
 '''
 # 獲取TOKEN並模擬使用者操作
 user_id = "user123"
