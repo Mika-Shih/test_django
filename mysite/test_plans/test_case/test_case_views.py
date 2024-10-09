@@ -22,21 +22,36 @@ def list_case(cursor, request):
     category = request.data.get('category')
     cursor.execute(
         '''
+        SELECT case_permission 
+        FROM test_case_permission
+        WHERE category = %s; 
+        ''',
+        (category,)
+    )
+    result = cursor.fetchone()
+    [case_permission] = result
+    permission_data = {
+        "admin_permission": mail_to_userid(user_id) in json.loads(case_permission)["admin"],
+        "editor_permission": mail_to_userid(user_id) in json.loads(case_permission)["editor"],
+        "admin": [userid_to_mail(num)[1] for num in json.loads(case_permission)["admin"]],
+        "editor": [userid_to_mail(num)[1] for num in json.loads(case_permission)["editor"]],
+    }
+    cursor.execute(
+        '''
         SELECT id, category, case_details, update_time
         FROM test_case
-        WHERE category = %s OR category = 'COMMON';
+        WHERE category = %s;
         ''',
         (category,)
     )
     rows = cursor.fetchall()
-    if not rows:
-        return JsonResponse({'error': 'No Data'})
     all_data = []
+    if not rows:
+        return JsonResponse({'finaldata': all_data, 'permission': permission_data})
     for row in rows:
         [id, category, case_details, list_update_time] = row
         select = json.loads(case_details)["select"]
         version = json.loads(case_details)["item_order"]
-        pending = json.loads(case_details)["pending"]
         print(version)
         cursor.execute(
             f'''
@@ -49,14 +64,8 @@ def list_case(cursor, request):
         result = cursor.fetchall()
         data = {
             'id': id,
-            'reviewer': mail_to_userid(user_id) == (json.loads(case_details)["reviewer"] if json.loads(case_details)["reviewer"] != "" else json.loads(case_details)["creator"]),
-            'editor': mail_to_userid(user_id) in json.loads(case_details)["editor"] or mail_to_userid(user_id) == json.loads(case_details)["creator"],
             'tag': json.loads(case_details)["tag"],
             'category': category,
-            'creator_name': userid_to_mail(json.loads(case_details)["creator"])[0],
-            'creator_mail': userid_to_mail(json.loads(case_details)["creator"])[1],
-            'editor_mail': [userid_to_mail(num)[1] for num in json.loads(case_details)["editor"]],
-            'reviewer_mail': userid_to_mail(json.loads(case_details)["reviewer"])[1] if json.loads(case_details)["reviewer"] != "" else "",
             'select': version.index(select),
             'data': [
                 {
@@ -71,7 +80,8 @@ def list_case(cursor, request):
             'list_update_time': list_update_time,
         }
         all_data.append(data)
-    return JsonResponse({'finaldata': all_data})
+    all_data = sorted(all_data, key=lambda x: x['id'])
+    return JsonResponse({'finaldata': all_data, 'permission': permission_data})
     
 # Create View for Test Item
 @api_view(["post"])   
@@ -84,17 +94,24 @@ def create_case(cursor, request):
     description = request.data.get('description')
     comment = request.data.get('comment')
     tag = request.data.get('tag')
-    reviewer = request.data.get('reviewer')
-    print(reviewer)
-    editor = request.data.get('editor')
+    cursor.execute(
+        '''
+        SELECT * FROM test_case_permission
+        WHERE category = %s AND ((case_permission ->> 'admin') ::jsonb @> to_jsonb(ARRAY[%s])  OR (case_permission ->> 'editor') ::jsonb @> to_jsonb(ARRAY[%s]));
+        ''',
+        (category, mail_to_userid(user_id), mail_to_userid(user_id))
+    )
+    if not cursor.fetchone():
+        return JsonResponse({'error': 'Insufficient permissions'})
     if not name or not description:
         return JsonResponse({'error': 'name or description is required.'})
     cursor.execute(
         '''
-        SELECT * FROM test_case_record
-        WHERE case_details ->> 'name' = %s;
+        SELECT * FROM test_case_record tcr
+        JOIN test_case tc ON tcr.id = ANY(SELECT jsonb_array_elements_text(tc.case_details -> 'item_order')::int)
+        WHERE tc.category = %s AND tcr.case_details ->> 'name' = %s;
         ''',
-        (name,)
+        (category, name)
     )
     if cursor.fetchone():
         return JsonResponse({'error': 'name already exists.'})
@@ -114,12 +131,8 @@ def create_case(cursor, request):
     case_id = cursor.fetchone()[0]
 
     case_list_info = {
-        "creator": mail_to_userid(user_id),
-        "editor": [mail_to_userid(num) for num in editor],
-        "reviewer": mail_to_userid(reviewer) if reviewer else "",
         "select": case_id,
         "item_order":[case_id],
-        "pending": [],
         "tag": tag,
     }
     cursor.execute(
@@ -141,18 +154,16 @@ def edit_case(cursor, request):
     name = request.data.get('name')
     description = request.data.get('description')
     comment = request.data.get('comment')
-    reviewer = request.data.get('reviewer')
-    print(reviewer)
-    editor = request.data.get('editor')
+    tag = request.data.get('tag')
+    category = request.data.get('category')
     cursor.execute(
         '''
-        SELECT case_details FROM test_case
-        WHERE  id = %s;
+        SELECT * FROM test_case_permission
+        WHERE category = %s AND ((case_permission ->> 'admin') ::jsonb @> to_jsonb(ARRAY[%s])  OR (case_permission ->> 'editor') ::jsonb @> to_jsonb(ARRAY[%s]));
         ''',
-        (id,)
+        (category, mail_to_userid(user_id), mail_to_userid(user_id))
     )
-    result = cursor.fetchone()
-    if mail_to_userid(user_id) != json.loads(result[0])["creator"] and mail_to_userid(user_id) not in json.loads(result[0])["editor"]:
+    if not cursor.fetchone():
         return JsonResponse({'error': 'Insufficient permissions'})
     if not name or not description:
         return JsonResponse({'error': 'name or description is required.'})
@@ -179,19 +190,21 @@ def edit_case(cursor, request):
         (json.dumps(case_info), mail_to_userid(user_id), "approve", timenow())
     )
     case_id = cursor.fetchone()[0]
+    cursor.execute(
+        '''
+        SELECT case_details FROM test_case
+        WHERE id = %s;
+        ''',
+        (id,)
+    )
+    result = cursor.fetchone()
     item_order = json.loads(result[0])["item_order"]
-    print("Before appending:", item_order)
-    print("case_id:", case_id)
+    tag = json.loads(result[0])["tag"]
     item_order.append(case_id)
-    print("After appending:", item_order)
     case_list_info = {
-        "creator": json.loads(result[0])["creator"],
-        "editor": [mail_to_userid(num) for num in editor],
-        "reviewer": mail_to_userid(reviewer) if reviewer else "",
         "select": case_id,
         "item_order":item_order,
-        "pending": [],
-        "tag": json.loads(result[0])["tag"],
+        "tag": tag,
     }
     cursor.execute(
         '''
@@ -203,12 +216,71 @@ def edit_case(cursor, request):
     )
     return JsonResponse({'finaldata': 'Successful'})
 
+#Add category
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def add_category(cursor, request):
+    user_id = request.user_id
+    category = request.data.get('category')
+    if not category:
+        return JsonResponse({'error': 'category is required.'})
+    case_permission_info = {
+        "admin": [mail_to_userid(user_id)],
+        "editor": [],
+    }
+    cursor.execute(
+        '''
+        INSERT INTO test_case_permission (category, case_permission)
+        VALUES (%s, %s);
+        ''',
+        (category, json.dumps(case_permission_info))
+    )
+    return JsonResponse({'finaldata': 'Successful'})
+
+#test_case_permission
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def edit_permission(cursor, request):
+    user_id = request.user_id
+    category = request.data.get('category')
+    admin = request.data.get('admin')
+    editor = request.data.get('editor')
+    cursor.execute(
+        '''
+        SELECT * FROM test_case_permission
+        WHERE category = %s AND ((case_permission ->> 'admin') ::jsonb @> to_jsonb(ARRAY[%s]))
+        ''',
+        (category, mail_to_userid(user_id))
+    )
+    if not cursor.fetchone():
+        return JsonResponse({'error': 'Insufficient permissions'})
+    else:
+        case_permission_info = {
+            "admin": [mail_to_userid(num) for num in admin],
+            "editor": [mail_to_userid(num) for num in editor],
+        }    
+        cursor.execute(
+            '''
+            UPDATE test_case_permission
+            SET case_permission = %s
+            WHERE category = %s;
+            ''',
+            (json.dumps(case_permission_info), category)
+        )
+        operation = f"modify admin: {' '.join(admin)}, modify editor: {' '.join(editor)}"
+        log_views.test_plan_log(user_id, operation)
+        return JsonResponse({'finaldata': 'Successful'})
+
+# time function 
 def timenow():
     current_time = datetime.now()
     timezone = pytz.timezone('Asia/Taipei')
     last_update_time = current_time.astimezone(timezone)
     return last_update_time
 
+# return user_id number
 @with_db_connection
 def mail_to_userid(cursor, user_email):
     cursor.execute(
@@ -219,6 +291,7 @@ def mail_to_userid(cursor, user_email):
     (user_email,))
     return cursor.fetchone()[0]
 
+#[0]: user_name, [1]: user_email
 @with_db_connection
 def userid_to_mail(cursor, user_id):
     cursor.execute(
