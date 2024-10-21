@@ -198,3 +198,30 @@ def add_member(cursor, request):
         user_info = json.dumps({"user_email": email})
         cursor.execute("INSERT INTO user_info (user_name, user_site, user_info) VALUES (%s, %s, %s)", (user_name, site, user_info)) 
     return JsonResponse({'finaldata': 'successful'})
+
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def edit_member(cursor, request):
+    id = request.data.get('id')
+    name = request.data.get('name')
+    email = request.data.get('email')
+    site = request.data.get('site')
+    user_id = request.user_id
+    if user_account_approve(user_id) == False:
+        return JsonResponse({'error': 'Insufficient permissions'})
+    if not name or not email or not site:
+        return JsonResponse({'error': "User / email / site cannot be empty."})
+    cursor.execute(
+        '''
+        UPDATE user_info
+        SET user_name = %s,
+        user_info = jsonb_set(user_info, '{user_email}', %s::jsonb), 
+        user_site = %s
+        WHERE user_id = %s;
+        ''',
+        (name, json.dumps(email), site, id)
+    )
+    if cursor.rowcount == 0:
+        return JsonResponse({'error': "User does not exist."})
+    return JsonResponse({'finaldata': "successful"})

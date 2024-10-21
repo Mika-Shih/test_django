@@ -314,7 +314,7 @@ def system_mail(user,request=None,to=None,cc=None,message:str=''):
 @with_db_connection
 def member(cursor, request):
     query = f'''
-    SELECT ui.user_name, ui.user_info -> 'user_email', ui.user_site
+    SELECT ui.user_name, ui.user_info -> 'user_email', ui.user_site, ui.user_id
     FROM user_info AS ui
     WHERE ui.user_name != '' and ui.user_name != 'GUEST';
     '''
@@ -325,8 +325,9 @@ def member(cursor, request):
         for row in rows:
             data = {
                 'name': row[0],
-                'email': row[1],
+                'email': row[1].strip('"'),
                 'site': row[2],
+                'id': row[3],
             }
             member_data.append(data)
     return JsonResponse ({'finaldata': member_data})
