@@ -6,5 +6,7 @@ urlpatterns = [
     path('create_case/', test_case_views.create_case),
     path('edit_case/', test_case_views.edit_case),
     path('add_category/', test_case_views.add_category),
+    path('view_category/', test_case_views.view_category),
     path('edit_permission/', test_case_views.edit_permission),
+    path('select_case/', test_case_views.select_case),
 ]

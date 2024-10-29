@@ -69,13 +69,14 @@ def list_case(cursor, request):
             'select': version.index(select),
             'data': [
                 {
+                    'case_id': version[i],
                     'case_name': json.loads(row[0])['name'],
                     'description': json.loads(row[0])['description'],
                     'comment': json.loads(row[0])['comment'],
                     'editor_name': userid_to_mail(row[1])[0],
                     'case_status': row[2],
                     'update_time': row[3],
-                } for row in result
+                } for i, row in enumerate(result)
             ],
             'list_update_time': list_update_time,
         }
@@ -216,6 +217,35 @@ def edit_case(cursor, request):
     )
     return JsonResponse({'finaldata': 'Successful'})
 
+#Modify select main case
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def select_case(cursor, request):
+    user_id = request.user_id
+    category = request.data.get('category')
+    id = request.data.get('id')
+    select = request.data.get('select')
+    print(category, id, select)
+    cursor.execute(
+        '''
+        SELECT * FROM test_case_permission
+        WHERE category = %s AND ((case_permission ->> 'admin') ::jsonb @> to_jsonb(ARRAY[%s])  OR (case_permission ->> 'editor') ::jsonb @> to_jsonb(ARRAY[%s]));
+        ''',
+        (category, mail_to_userid(user_id), mail_to_userid(user_id))
+    )
+    if not cursor.fetchone():
+        return JsonResponse({'error': 'Insufficient permissions'})
+    cursor.execute(
+        '''
+        UPDATE test_case
+        SET case_details = jsonb_set(case_details, '{select}', %s::jsonb)
+        WHERE id = %s;
+        ''',
+        (json.dumps(select), id)
+    )
+    return JsonResponse({'finaldata': 'Successful'})
+
 #Add category
 @api_view(["post"])
 @csrf_exempt
@@ -225,6 +255,17 @@ def add_category(cursor, request):
     category = request.data.get('category')
     if not category:
         return JsonResponse({'error': 'category is required.'})
+    category = category.upper()
+    cursor.execute(
+        '''
+        SELECT *
+        FROM test_case_permission
+        WHERE category = %s;
+        ''',
+        (category,)
+    )
+    if cursor.fetchone():
+        return JsonResponse({'error': 'category already exists.'})
     case_permission_info = {
         "admin": [mail_to_userid(user_id)],
         "editor": [],
@@ -238,7 +279,20 @@ def add_category(cursor, request):
     )
     return JsonResponse({'finaldata': 'Successful'})
 
-#test_case_permission
+#View category
+@with_db_connection
+def view_category(cursor, request):
+    cursor.execute(
+        '''
+        SELECT category
+        FROM test_case_permission;
+        '''
+    )
+    rows = cursor.fetchall()
+    all_data = [row[0] for row in rows]
+    return JsonResponse({'finaldata': all_data})
+
+#Test case permission
 @api_view(["post"])
 @csrf_exempt
 @with_db_connection

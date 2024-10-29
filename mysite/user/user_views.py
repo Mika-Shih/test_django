@@ -106,9 +106,23 @@ def verify(cursor, request):
         hashed_password=result[0]
         verify=verify_password(password, hashed_password)  
         if verify:
-            # 生成 Token
+            cursor.execute(
+                f'''
+                SELECT ui.user_info->'token'->>'update_time' AS update_time
+                FROM user_info AS ui
+                WHERE 1=1 {accont_condition} {certificate_condition} AND ui.user_info ? 'token'
+                ''',
+                (username, certificate)
+            )
+            result_updatetime = cursor.fetchone()
+            if result_updatetime:
+                [update_time] = result_updatetime 
+                update_time = datetime.strptime(update_time, "%Y-%m-%d %H:%M:%S")
+                current_time = datetime.now()
+                if (current_time - update_time).days > 80:
+                    return JsonResponse({'error': 'Token expired'})
             payload = {
-                'user_id': username,  # 可以在 Token 中包含使用者的身份信息
+                'user_id': username,
                 'exp': datetime.utcnow() + timedelta(days=365 * 100)
                 # 'exp': datetime.utcnow() + timedelta(hours=1)  
             }
@@ -331,3 +345,4 @@ def member(cursor, request):
             }
             member_data.append(data)
     return JsonResponse ({'finaldata': member_data})
+
