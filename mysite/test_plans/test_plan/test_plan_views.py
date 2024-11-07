@@ -6,81 +6,74 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from datetime import datetime
 import pytz
+from user import user_views as user_views
 def with_db_connection(func):
     def wrapper(*args, **kwargs):
         with connection.cursor() as cursor:
             return func(cursor, *args, **kwargs)
     return wrapper
 
-# List View for Test Case
+# List View for Test Plan
 @api_view(["post"])   
 @csrf_exempt
 @with_db_connection
-def list_case(cursor, request):
+def list_plan(cursor, request):
     user_id = request.user_id
     category = request.data.get('category')
     cursor.execute(
         '''
-        SELECT case_permission 
-        FROM test_case_permission
-        WHERE category = %s; 
-        ''',
-        (category,)
-    )
-    result = cursor.fetchone()
-    [case_permission] = result
-    permission_data = {
-        "re_permission": mail_to_userid(user_id) in json.loads(case_permission)["admin"],
-        "editor_permission": mail_to_userid(user_id) in json.loads(case_permission)["editor"],
-        "admin": [userid_to_mail(num)[1] for num in json.loads(case_permission)["admin"]],
-        "editor": [userid_to_mail(num)[1] for num in json.loads(case_permission)["editor"]],
-    }
-    cursor.execute(
-        '''
-        SELECT id, category, case_details, update_time
-        FROM test_case
+        SELECT id, category, type, plan_details
+        FROM test_plan
         WHERE category = %s;
         ''',
         (category,)
     )
     rows = cursor.fetchall()
     all_data = []
-    if not rows:
-        return JsonResponse({'finaldata': all_data, 'permission': permission_data})
     for row in rows:
-        [id, category, case_details, list_update_time] = row
-        select = json.loads(case_details)["select"]
-        version = json.loads(case_details)["item_order"]
-        print(version)
+        [id, category, type, plan_details] = row
+        name = json.loads(plan_details)["name"]
+        creator = json.loads(plan_details)["creator"]
+        editor = json.loads(plan_details)["editor"]
+        reviewer = json.loads(plan_details)["reviewer"]
+        item_order = json.loads(plan_details)["item_order"]
+        select = json.loads(plan_details)["select"]
+        permission_data = {
+            "reviewer_permission": user_views.mail_to_userid(user_id) in reviewer,
+            "editor_permission": user_views.mail_to_userid(user_id) in editor,
+            "reviewer": [user_views.userid_to_mail(num)[1] for num in reviewer],
+            "editor": [user_views.userid_to_mail(num)[1] for num in editor],
+        }
         cursor.execute(
             f'''
-            SELECT case_details, editor, case_status, update_time
-            FROM test_case_record
-            WHERE id IN ({', '.join(['%s'] * len(set(version)))});
+            SELECT id, plan_details, editor, plan_status, update_time
+            FROM test_plan_record
+            WHERE id IN ({', '.join(['%s'] * len(set(item_order)))});
             ''',
-            tuple(set(version))
+            tuple(set(item_order))
         )
         result = cursor.fetchall()
         data = {
             'id': id,
-            'tag': json.loads(case_details)["tag"],
+            'name': name,
             'category': category,
-            'select': version.index(select),
+            'type': type,
+            'select': item_order.index(select),
+            'creator': creator,
+            'permission': permission_data,
             'data': [
                 {
-                    'case_name': json.loads(row[0])['name'],
-                    'description': json.loads(row[0])['description'],
-                    'comment': json.loads(row[0])['comment'],
-                    'editor_name': userid_to_mail(row[1])[0],
-                    'case_status': row[2],
-                    'update_time': row[3],
+                    'id': row[0],
+                    'plan_details': json.loads(row[1]),
+                    'editor_name': user_views.userid_to_mail(row[2])[0],
+                    'case_status': row[3],
+                    'update_time': row[4],
                 } for row in result
             ],
-            'list_update_time': list_update_time,
         }
         all_data.append(data)
     all_data = sorted(all_data, key=lambda x: x['id'])
-    return JsonResponse({'finaldata': all_data, 'permission': permission_data})
+    return JsonResponse({'finaldata': all_data})
     
 # Create View for Test Item
 @api_view(["post"])   
@@ -115,15 +108,15 @@ def create_plan(cursor, request):
         VALUES (%s, %s, %s, %s)
         RETURNING id;
         ''',
-        (json.dumps(plan_details_info), mail_to_userid(user_id), "approve", timenow())
+        (json.dumps(plan_details_info), user_views.mail_to_userid(user_id), "approve", timenow())
     )
     plan_id = cursor.fetchone()[0]
 
     plan_info = {
         "name": name,
-        "creator": mail_to_userid(user_id),
-        "editor": [mail_to_userid(num) for num in editor],
-        "reviewer": [mail_to_userid(num) for num in reviewer],
+        "creator": user_views.mail_to_userid(user_id),
+        "editor": [user_views.mail_to_userid(num) for num in editor],
+        "reviewer": [user_views.mail_to_userid(num) for num in reviewer],
         "select": plan_id,
         "item_order":[plan_id],
         "pending": [],
@@ -136,6 +129,60 @@ def create_plan(cursor, request):
         (category, type, json.dumps(plan_info))
     )
     return JsonResponse({'finaldata': 'Successful'})
+
+# Edit for Test Plan
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def edit_plan(cursor, request):
+    user_id = request.user_id
+    plan_id = request.data.get('plan_id')
+    # name = request.data.get('name')
+    details = request.data.get('details')
+    # editor = request.data.get('editor')
+    # reviewer = request.data.get('reviewer')
+    cursor.execute(
+        '''
+        SELECT id, category, type, plan_details
+        FROM test_plan
+        WHERE id = %s AND ((plan_details ->> 'editor') ::jsonb @> to_jsonb(ARRAY[%s]));
+        ''',
+        (plan_id, user_views.mail_to_userid(user_id))
+    )
+    result = cursor.fetchone()
+    if not result:
+       return JsonResponse({'error': 'Insufficient permissions'}) 
+    else:
+        [id, category, type, plan_details] = result
+        item_order = json.loads(plan_details)["item_order"]
+        cursor.execute(
+            '''
+            INSERT INTO test_plan_record (plan_details, editor, plan_status, update_time)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id;
+            ''',
+            (json.dumps(details), user_views.mail_to_userid(user_id), "approve", timenow())
+        )
+        plan_record_id = cursor.fetchone()[0]
+        item_order.append(plan_record_id)
+        plan_info = {
+            "name": json.loads(plan_details)["name"],
+            "creator": json.loads(plan_details)["creator"],
+            "editor": json.loads(plan_details)["editor"],
+            "reviewer": json.loads(plan_details)["reviewer"],
+            "select": plan_record_id,
+            "item_order":item_order,
+            "pending": [],
+        }
+        cursor.execute(
+            '''
+            UPDATE test_plan
+            SET plan_details = %s
+            WHERE id = %s;
+            ''',
+            (json.dumps(plan_info), plan_id)
+        )
+        return JsonResponse({'finaldata': 'Successful'})
 
 # Update View for Test Plan
 def update_plan(request, plan_id):
@@ -187,24 +234,3 @@ def timenow():
     last_update_time = current_time.astimezone(timezone)
     return last_update_time
 
-# return user_id number
-@with_db_connection
-def mail_to_userid(cursor, user_email):
-    cursor.execute(
-        '''
-        SELECT * FROM user_info
-        WHERE user_info ->> 'user_email' = %s;
-        ''',           
-    (user_email,))
-    return cursor.fetchone()[0]
-
-#[0]: user_name, [1]: user_email
-@with_db_connection
-def userid_to_mail(cursor, user_id):
-    cursor.execute(
-        '''
-        SELECT user_name, user_info ->> 'user_email' FROM user_info
-        WHERE user_id = %s;
-        ''',           
-    (user_id,))
-    return cursor.fetchone()

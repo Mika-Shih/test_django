@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 
 from . import user_views
 app_name = "user"
@@ -12,6 +12,7 @@ urlpatterns = [
     path("active_code/", user_views.active_code, name="active_code"),
     path("logout/", user_views.logout, name="logout"),
     path("view_token/", user_views.view_token, name="view_token"),
+    path("edit_token/", user_views.edit_token, name="edit_token"),
     path("member/", user_views.member, name="member"),
     # path("mail/", include("mail.mail_urls")),
     # path("log/", include("log.log_urls")),

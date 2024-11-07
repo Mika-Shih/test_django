@@ -14,6 +14,12 @@ def with_db_connection(func):
             return func(cursor, *args, **kwargs)
     return wrapper
 
+def admin_approve(user):
+    if user == "bill.chang@hp.com" or user == "seanl@hp.com":
+        return True
+    else:
+        return False
+
 def user_account_approve(user, permission=None):
     if permission == "Microsoft":
         if user == "bill.chang@hp.com" or user == "catherine.jia@hp.com" or user == "timothy.wang1@hp.com" or user == "seanl@hp.com" or user == "yvonne.lai@hp.com" or user == "raizel.lee@hp.com":

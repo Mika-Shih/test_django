@@ -104,7 +104,7 @@ def verify(cursor, request):
     if  result:
         print(result[0])
         hashed_password=result[0]
-        verify=verify_password(password, hashed_password)  
+        verify=verify_password(password, hashed_password)
         if verify:
             cursor.execute(
                 f'''
@@ -301,7 +301,7 @@ def view_token(cursor, request):
         token_data = []
         for row in rows:
             data = {
-                'email': row[0],
+                'email': row[0].strip('"'),
                 'appid': row[1],
                 'secret': row[2],
                 'approve': row[3],
@@ -346,3 +346,64 @@ def member(cursor, request):
             member_data.append(data)
     return JsonResponse ({'finaldata': member_data})
 
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def edit_token(cursor, request):
+    user_id = request.user_id
+    if account_views.admin_approve(user_id) == False:
+        return JsonResponse({'error': 'Insufficient permissions'})
+    email = request.data.get('email')
+    appid = request.data.get('appid')
+    secret = request.data.get('secret')
+    approve = request.data.get('approve')
+    signin_url = request.data.get('signin_url')
+    cursor.execute(
+        '''
+        SELECT user_info -> 'token' ->> 'approve', user_info -> 'token' ->> 'update_time'
+        FROM user_info
+        WHERE user_info ->> 'user_email' = %s;
+        ''',
+        (email,)
+    )
+    result = cursor.fetchone()
+    [old_approve, old_update_time] = result
+    compare = old_approve == approve
+    token = {
+        'appid': appid,
+        'secret': secret,
+        'approve': approve,
+        'signin_url': signin_url,
+        'update_time': old_update_time if compare else datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    cursor.execute(
+        '''
+        UPDATE user_info
+        SET user_info = jsonb_set(user_info, '{token}', %s::jsonb)
+        WHERE user_info ->> 'user_email' = %s;
+        ''',
+        (json.dumps(token), email)
+    )
+    return JsonResponse({'finaldata': "successful"})
+
+# return user_id number
+@with_db_connection
+def mail_to_userid(cursor, user_email):
+    cursor.execute(
+        '''
+        SELECT * FROM user_info
+        WHERE user_info ->> 'user_email' = %s;
+        ''',           
+    (user_email,))
+    return cursor.fetchone()[0]
+
+#[0]: user_name, [1]: user_email
+@with_db_connection
+def userid_to_mail(cursor, user_id):
+    cursor.execute(
+        '''
+        SELECT user_name, user_info ->> 'user_email' FROM user_info
+        WHERE user_id = %s;
+        ''',           
+    (user_id,))
+    return cursor.fetchone()

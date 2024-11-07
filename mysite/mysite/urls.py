@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/cat/", include("cat.cat_urls")),
     path("api/cth/", include("cth.cth_urls")),
     path("api/account/", include("account.account_urls")),
+    path("api/test_driver_validation/", include("test_driver_validation.tdv_urls")),
     path("api/test_plans/", include("test_plans.test_plan_urls")),
     path("api/test_plan/", include("test_plan.test_plan_urls")),
 ]
