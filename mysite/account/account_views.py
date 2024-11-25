@@ -7,7 +7,9 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from django.db import connection
 import json
-import tempfile, os
+import tempfile 
+import os
+from tool import tool_views as tool_views
 def with_db_connection(func):
     def wrapper(*args, **kwargs):
         with connection.cursor() as cursor:
@@ -86,7 +88,7 @@ class token_prove:
     def get_token_backend(self):
         database_token = self.__get_token_from_database()
         database_token_backend = JustToken()
-        database_token_backend.token = json.loads(database_token)['token']['approve']             
+        database_token_backend.token = json.loads(database_token)['token']['approve']     
         database_token_backend.load_token()
         self.token = database_token_backend.token
         return database_token_backend

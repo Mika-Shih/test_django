@@ -1,5 +1,5 @@
 from django.template.loader import get_template
-
+from account import account_views as account_views
 # import win32com.client as win32
 
 # def send_email_proxy(subject, to, cc, body):
@@ -36,6 +36,36 @@ from django.template.loader import get_template
 #     #(account,to,cc=None,subject='',body='',attachments:list=None):
 #     cc=''
 #     return HP_mail(account,to,cc,subject,body)
+
+# create_test_arrangement_task
+def tdv_new_task_mail(user, to=None, cc=None, record=None, message:str='', attachments:list=None):
+    template = get_template("polls/test_new_task.html")
+    account = account_views.get_account(user)
+    if account:
+        attachments = None
+        context = {
+                    'message':message,
+                    'sender':account.get_current_user().full_name,
+                    'record': record,
+                }
+        body = template.render(context)
+        subject = "Test New Task"  
+        return HP_mail(account,to,cc,subject,body)
+    
+def tdv_approve_task_mail(user, to=None, cc=None, record=None, message:str='', attachments:list=None):
+    template = get_template("polls/test_approve_task.html")
+    account = account_views.get_account(user)
+    if account:
+        attachments = None
+        context = {
+                    'message':message,
+                    'sender':account.get_current_user().full_name,
+                    'record': record,
+                }
+        body = template.render(context)
+        subject = "Test Approve Task"  
+        return HP_mail(account,to,cc,subject,body)
+
 
 #mail    
 def HP_mail(account,to,cc=None,subject='',body='',attachments:list=None):

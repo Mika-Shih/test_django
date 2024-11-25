@@ -14,6 +14,7 @@ from django.template.loader import get_template
 from mail import mail_views as mail_views
 from account import account_views as account_views
 from log import log_views as log_views
+from tool import tool_views as tool_views
 from user.token import LoginRequiredMiddleware
 from django.db import connection
 
@@ -22,6 +23,11 @@ def with_db_connection(func):
         with connection.cursor() as cursor:
             return func(cursor, *args, **kwargs)
     return wrapper
+
+def custom_serializer(obj):
+    if isinstance(obj, dict) and 'scope' in obj:
+        return obj
+    raise TypeError("Type not serializable")
 
 def login(request):
     return render(request, 'polls/login.html')
@@ -369,6 +375,7 @@ def edit_token(cursor, request):
     result = cursor.fetchone()
     [old_approve, old_update_time] = result
     compare = old_approve == approve
+    approve = json.loads(approve)
     token = {
         'appid': appid,
         'secret': secret,

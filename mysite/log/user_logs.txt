@@ -1328,3 +1328,55 @@
 2024-11-05 16:47:20 - User bill.chang@hp.com: Logged in // Note:None
 2024-11-06 15:37:07 - User guest@none.com: Logged in // Note:None
 2024-11-06 15:37:32 - User guest@none.com: Logged in // Note:None
+2024-11-07 14:12:39 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-07 16:40:53 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-08 17:27:46 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-11 14:30:10 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-12 11:36:59 - User guest@none.com: Logged in // Note:None
+2024-11-12 11:38:26 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-13 14:39:20 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-13 18:09:52 - User bill.chang@hp.com: 刪除: 0004770C6M 機台 // Note:None
+2024-11-13 18:11:07 - User bill.chang@hp.com: 報廢: 0456065 機台 // Note:None
+2024-11-14 15:26:59 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-14 15:37:34 - User guest@none.com: Logged in // Note:None
+2024-11-14 15:48:32 - User guest@none.com: Logged in // Note:None
+2024-11-14 15:48:36 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-14 15:48:40 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-18 11:39:06 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-18 14:59:48 - User bill.chang@hp.com: 借出: 0456056 機台 // Note:None
+2024-11-18 16:14:04 - User bill.chang@hp.com: 借出: 5CD3518QY3 機台 // Note:None
+2024-11-18 16:55:46 - User bill.chang@hp.com: 歸還:5CD3518QY3機台 // Note:None
+2024-11-18 17:20:07 - User bill.chang@hp.com: 歸還:0456056機台 // Note:None
+2024-11-18 17:20:53 - User bill.chang@hp.com: 歸還:5CD026382L機台 // Note:None
+2024-11-18 17:21:36 - User bill.chang@hp.com: 歸還:5CG0514C8L機台 // Note:None
+2024-11-18 17:23:23 - User bill.chang@hp.com: 借出: 5CG0514C8L 機台 // Note:None
+2024-11-18 17:23:42 - User bill.chang@hp.com: 歸還:0002770N6T機台 // Note:None
+2024-11-18 17:24:59 - User bill.chang@hp.com: 歸還:5CG0514C8L機台 // Note:None
+2024-11-18 20:48:57 - User bill.chang@hp.com: 借出: 5CG0514C8L 機台 // Note:None
+2024-11-18 20:50:00 - User bill.chang@hp.com: 歸還:5CG0514C8L機台 // Note:None
+2024-11-18 20:52:32 - User bill.chang@hp.com: 借出: 5CG0514C8L 機台 // Note:None
+2024-11-18 20:53:20 - User bill.chang@hp.com: 借出: 0002770N6T 機台 // Note:None
+2024-11-18 21:09:14 - User bill.chang@hp.com: 歸還:0002770N6T機台 // Note:None
+2024-11-19 14:07:30 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-19 17:21:09 - User bill.chang@hp.com: 歸還:5CG0514C8L機台 // Note:None
+2024-11-20 11:48:28 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-20 12:14:20 - User bill.chang@hp.com: 借出: 0456056 機台 // Note:None
+2024-11-20 12:14:20 - User bill.chang@hp.com: 借出: 5CD3518QY3 機台 // Note:None
+2024-11-20 12:44:54 - User bill.chang@hp.com: 借出: 0002770N6T 機台 // Note:None
+2024-11-20 17:31:00 - User bill.chang@hp.com: 歸還:0002770N6T機台 // Note:None
+2024-11-20 17:42:05 - User bill.chang@hp.com: 歸還:5CD3518QY3機台 // Note:None
+2024-11-20 17:43:18 - User bill.chang@hp.com: 歸還:0456056機台 // Note:None
+2024-11-20 17:44:24 - User bill.chang@hp.com: 借出: 5CD3518QY3 機台 // Note:None
+2024-11-20 17:46:03 - User bill.chang@hp.com: 借出: 0456056 機台 // Note:None
+2024-11-20 17:49:14 - User bill.chang@hp.com: 借出: 0002770N6T 機台 // Note:None
+2024-11-20 17:50:24 - User bill.chang@hp.com: 歸還:0002770N6T機台 // Note:None
+2024-11-20 17:59:59 - User bill.chang@hp.com: 借出: 0002770N6T 機台 // Note:None
+2024-11-20 18:04:13 - User bill.chang@hp.com: 歸還:0002770N6T機台 // Note:None
+2024-11-20 19:03:42 - User bill.chang@hp.com: 歸還:0456056機台 // Note:None
+2024-11-20 19:39:29 - User bill.chang@hp.com: 借出: 0002770N6T 機台 // Note:None
+2024-11-20 19:51:15 - User bill.chang@hp.com: 歸還:0002770N6T機台 // Note:None
+2024-11-21 11:31:04 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-22 11:25:03 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-22 17:20:05 - User guest@none.com: Logged in // Note:None
+2024-11-22 17:20:11 - User bill.chang@hp.com: Logged in // Note:None
+2024-11-25 14:19:50 - User bill.chang@hp.com: Logged in // Note:None

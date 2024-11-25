@@ -24,6 +24,7 @@ urlpatterns = [
     path("api/mail/", include("mail.mail_urls")),
     path("api/sharepoint/", include("sharepoint.sharepoint_urls")),
     path("api/log/", include("log.log_urls")),
+    path("api/tool/", include("tool.tool_urls")),
     path("api/pulsar/", include("pulsar.pulsar_urls")),
     path("api/cat/", include("cat.cat_urls")),
     path("api/cth/", include("cth.cth_urls")),

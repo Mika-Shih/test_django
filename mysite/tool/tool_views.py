@@ -8,6 +8,8 @@ import pytz #時間區域
 from dateutil.parser import parse #時間字串改回時間 用於時間比較
 import uuid #亂數碼
 import json, os, time
+import pickle
+import base64
 import inspect #取得對象訊息/代碼可讀
 import openpyxl
 import tempfile
@@ -283,3 +285,10 @@ def excel_make(data):
         sheet.cell(row=index, column=12).value = data_item["update_time"]
     wb.save(file_path)
     return file_path
+
+def time_transmit(request):
+    current_time = datetime.now()
+    timezone = pytz.timezone('Asia/Taipei')
+    last_update_time = current_time.astimezone(timezone)
+    print(last_update_time)
+    return JsonResponse({'time': last_update_time})

@@ -40,4 +40,5 @@ urlpatterns = [
     path("sharepoint_name_user/", views.sharepoint_name_user, name="sharepoint_name_user"), #choose_folder
     path("file_location/", views.file_location, name="file_location"), #choose_file
     path("sharepoint_copy_file/", views.sharepoint_copy_file, name="sharepoint_copy_file"),
+    path("time_transmit/", views.time_transmit, name="time_transmit"),
 ]

@@ -204,3 +204,19 @@ LINE 2:             SELECT id, status, textcontent
 HINT:  Perhaps you meant to reference the column "tut.testcontent".
  // Note:sn_id: 68
 2024-06-21 12:20:42 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/addnewplatform: sharepoint_upload_file() missing 1 required positional argument: 'uploaded_file' // Note:uploaded_file_fail: 期末報告-電腦鼠的迷宮演算法.ppt
+2024-11-18 14:59:48 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 16:14:04 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: the JSON object must be str, bytes or bytearray, not dict // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 17:20:07 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 17:20:53 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: string indices must be integers, not 'str' // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 17:21:36 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 17:23:23 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 17:23:42 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 20:50:00 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 20:52:32 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-18 20:53:20 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-20 17:42:05 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-20 17:43:18 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/returnplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-20 17:44:24 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'dict' object has no attribute 'encode' // Note:send_mail_fail: bill.chang@hp.com
+2024-11-20 17:46:03 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: 'dict' object has no attribute 'encode' // Note:send_mail_fail: bill.chang@hp.com
+2024-11-20 17:49:14 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com
+2024-11-20 17:59:59 -  C:\Users\CHBI965\Desktop\HP\mysite\polls\views.py/lendplatform: dictionary update sequence element #0 has length 1; 2 is required // Note:send_mail_fail: bill.chang@hp.com

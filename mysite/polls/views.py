@@ -198,103 +198,30 @@ def filter_option(cursor, request):
                 }
         return JsonResponse(response_data) 
 
-@api_view(["post"])
-@csrf_exempt
 @with_db_connection
 def filtersearch(cursor, request):
-    finaldatas = request.data
-    start_time = request.data.get('start_time')
-    end_time = request.data.get('end_time')
-    if len(finaldatas["target"]) > 0:
-        targetset = set(finaldatas["target"])
-    else:
-        targetset = set("")  
-    if len(finaldatas["group"]) > 0:
-        groupset = set(finaldatas["group"])
-    else:
-        groupset = set("")
-    if len(finaldatas["platform"]) > 0:
-        platformset = set(finaldatas["platform"])
-    else:
-        platformset = set("") 
-    if len(finaldatas["cycle"]) > 0:
-        cycleset = set(finaldatas["cycle"])
-    else:
-        cycleset = set("")
-    if len(finaldatas["SN"]) > 0:
-        finaldatas["SN"] = [value.strip() for value in finaldatas["SN"] if value.strip()]
-        SNset = set(finaldatas["SN"])
-    else:
-        SNset = set("")
-    if len(finaldatas["phase"]) > 0:
-        phaseset = set(finaldatas["phase"])
-    else:
-        phaseset = set("") 
-    print(finaldatas["status"])
-    if len(finaldatas["status"]) > 0:
-        statusset = set(finaldatas["status"])
-        if "Machine arrive mail" in statusset :
-            statusset.remove("Machine arrive mail")
-    else:
-        statusset = set("")
-    print
-    if any("Machine arrive mail" in status for status in finaldatas.get("status", [])):    
-    # if finaldatas['machine_arrive_mail']:
-        machine_arrive_mail_set = set(["true"])     
-    else:
-        machine_arrive_mail_set = set("")                
-    # 創建一個佔位符字串，用於動態生成目標條件的部分 """"""""前面參數不能放數字""""""
-    targetsearch_placeholders = ', '.join(['%s'] * len(targetset))
-    groupsearch_placeholders = ', '.join(['%s'] * len(groupset))
-    platformsearch_placeholders = ', '.join(['%s'] * len(platformset))
-    cyclesearch_placeholders = ', '.join(['%s'] * len(cycleset))
-    SNsearch_placeholders = ', '.join(['%s'] * len(SNset))
-    phasesearch_placeholders = ', '.join(['%s'] * len(phaseset))
-    statussearch_placeholders = ', '.join(['%s'] * len(statusset))
-    machine_arrive_mail_search_placeholders = ', '.join(['%s'] * len(machine_arrive_mail_set))
-    # 創建一個包含目標條件的元組
-    targetsearch = tuple(targetset)
-    groupsearch = tuple(groupset)
-    platformsearch = tuple(platformset)
-    cyclesearch = tuple(cycleset)
-    serial_number_values = tuple(f"%{value}%" for value in SNset)
-    phasesearch = tuple(phaseset)
-    statussearch = tuple(statusset)
-    target_condition = ''
-    if len(targetset) > 0:
-        target_condition = f"AND pi.target IN ({targetsearch_placeholders})"
-    group_condition = ''
-    if len(groupset) > 0:
-        group_condition = f"AND pi.product_group IN ({groupsearch_placeholders})"
-    platform_condition = ''    
-    if len(platformset) > 0:
-        platform_condition = f"AND pi.codename IN ({platformsearch_placeholders})"
-    cycle_condition = ''
-    if len(cycleset) > 0:
-        cycle_condition = f"AND pi.cycle IN ({cyclesearch_placeholders})"
-    SN_condition = ''    
-    if len(SNset) > 0:
-        SN_condition = f"AND ul.serial_number ILIKE ANY (ARRAY[{SNsearch_placeholders}])"  
-    phase_condition = ''
-    if len(phaseset) > 0:
-        phase_condition = f"AND ul.phase IN ({phasesearch_placeholders})" 
-    status_condition = ''
-    if len(statusset) > 0: 
-            status_condition = f"AND subquery.status IN ({statussearch_placeholders})"
-    machine_arrive_mail_condition = ''
-    if  machine_arrive_mail_set:
-        machine_arrive_mail_condition = f"AND ul.machine_arrive_mail IN ({machine_arrive_mail_search_placeholders})"
-    query = f'''
+    cursor.execute(
+        '''
         SELECT pi.codename, ul.phase, pi.target, pi.product_group, pi.cycle, ul.sku, ul.serial_number,
             ui.user_name AS borrower_name,
             subquery.status, ul.position_in_site,
-            ul.remark, subquery.last_update_time
+            ul.remark, subquery.last_update_time, ul.id,
+            subquery_earliest.first_update_time AS earliest_update_time,
+            ul.machine_arrive_mail
         FROM (
             SELECT DISTINCT ON (ur.uut_id) ur.record_id, ur.uut_id, ur.status, ur.last_update_time, ur.borrower_id, ur.remark
             FROM unit_record AS ur
             WHERE ur.status != 'Delete'
             ORDER BY ur.uut_id, ur.last_update_time DESC
         ) subquery
+        JOIN (
+            SELECT 
+                ur.uut_id, 
+                MIN(ur.last_update_time) AS first_update_time
+            FROM unit_record AS ur
+            WHERE ur.status != 'Delete'
+            GROUP BY ur.uut_id
+        ) subquery_earliest ON subquery.uut_id = subquery_earliest.uut_id
         JOIN unit_list AS ul ON subquery.uut_id = ul.id
         JOIN platform_info AS pi ON ul.platform_id = pi.id
         LEFT JOIN user_info AS ui ON subquery.borrower_id = ui.user_id
@@ -302,12 +229,11 @@ def filtersearch(cursor, request):
             SELECT ur.uut_id
             FROM unit_record AS ur
             WHERE ur.status = 'Delete' 
-        ) {target_condition} {group_condition} {platform_condition} {cycle_condition} {SN_condition} {phase_condition} {status_condition} {machine_arrive_mail_condition} AND subquery.last_update_time BETWEEN '{start_time}' AND '{end_time}'
+        )
         ORDER BY subquery.last_update_time DESC
-    '''
-    cursor.execute(query, targetsearch+groupsearch+platformsearch+cyclesearch+serial_number_values+phasesearch+statussearch+tuple(machine_arrive_mail_set))  #查詢  套用元組進行查詢
+        ''',
+    )
     rows = cursor.fetchall()
-
     if rows:
         filtersearch = []
         for row in rows:
@@ -323,18 +249,15 @@ def filtersearch(cursor, request):
                 'status': row[8],
                 'position': row[9],
                 'remark': row[10],
-                'update_time': row[11]
+                'update_time': row[11],
+                'list_id': row[12],
+                'keep_on_time': row[13],
+                'machine_arrive_mail': row[14]
             }
             filtersearch.append(filtersearch_data)
-        response_data = {
-                'finaldata': filtersearch 
-                }
-        return JsonResponse(response_data) 
+        return JsonResponse({ 'finaldata': filtersearch }) 
     else:
-        response_data = {
-                'error': 'No matching data' 
-                }
-        return JsonResponse(response_data) 
+        return JsonResponse({ 'error': 'No matching data' }) 
 
 @with_db_connection
 def target(cursor, request):
@@ -1461,6 +1384,12 @@ def sharepoint_copy_file(request):
     target_file_path = os.path.join(downloads_path, 'user_logs.txt')
     shutil.copyfile(uploaded_file_path, target_file_path)
     return JsonResponse({'finaldata': 'successful'})
+
+def time_transmit(request):
+    time = timenow()
+    print(time)
+    return JsonResponse({ 'time': time })
+
 '''
 class ActivationCode:
     def __init__(self, user_id):
