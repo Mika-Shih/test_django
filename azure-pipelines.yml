@@ -19,6 +19,7 @@ steps:
       python manage.py migrate
       sudo systemctl restart gunicorn
     "
-  displayName: 'Deploy Django backend in WSL'
+
+
 
 
