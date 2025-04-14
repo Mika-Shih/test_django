@@ -14,7 +14,6 @@ steps:
     wsl bash -c "
       cd /home/mika/test_django
       source venv/bin/activate
-      pip install -r requirements.txt
       cd mysite
       python manage.py migrate
       sudo systemctl restart gunicorn
