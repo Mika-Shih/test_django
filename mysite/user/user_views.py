@@ -120,13 +120,13 @@ def verify(cursor, request):
                 ''',
                 (username, certificate)
             )
-            result_updatetime = cursor.fetchone()
-            if result_updatetime:
-                [update_time] = result_updatetime 
-                update_time = datetime.strptime(update_time, "%Y-%m-%d %H:%M:%S")
-                current_time = datetime.now()
-                if (current_time - update_time).days > 80:
-                    return JsonResponse({'error': 'Token expired'})
+            # result_updatetime = cursor.fetchone()
+            # if result_updatetime:
+            #     [update_time] = result_updatetime 
+            #     update_time = datetime.strptime(update_time, "%Y-%m-%d %H:%M:%S")
+            #     current_time = datetime.now()
+            #     if (current_time - update_time).days > 80:
+            #         return JsonResponse({'error': 'Token expired'})
             payload = {
                 'user_id': username,
                 'exp': datetime.utcnow() + timedelta(days=365 * 100)

@@ -3,9 +3,11 @@ from django.db import connection
 import json
 from datetime import datetime
 import pytz # time zone
+import re
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from user.token import LoginRequiredMiddleware #request.uesr_id
+from user import user_views as user_views 
 from log import log_views as log_views
 def with_db_connection(func):
     def wrapper(*args, **kwargs):
@@ -52,10 +54,9 @@ def list_case(cursor, request):
         [id, category, case_details, list_update_time] = row
         select = json.loads(case_details)["select"]
         version = json.loads(case_details)["item_order"]
-        print(version)
         cursor.execute(
             f'''
-            SELECT case_details, editor, case_status, update_time
+            SELECT id, case_details, editor, case_status, update_time
             FROM test_case_record
             WHERE id IN ({', '.join(['%s'] * len(set(version)))});
             ''',
@@ -69,14 +70,14 @@ def list_case(cursor, request):
             'select': version.index(select),
             'data': [
                 {
-                    'case_id': version[i],
-                    'case_name': json.loads(row[0])['name'],
-                    'description': json.loads(row[0])['description'],
-                    'comment': json.loads(row[0])['comment'],
-                    'editor_name': userid_to_mail(row[1])[0],
-                    'case_status': row[2],
-                    'update_time': row[3],
-                } for i, row in enumerate(result)
+                    'case_id': row[0],
+                    'case_name': json.loads(row[1])['name'],
+                    'description': json.loads(row[1])['description'],
+                    'comment': json.loads(row[1])['comment'],
+                    'editor_name': userid_to_mail(row[2])[0],
+                    'case_status': row[3],
+                    'update_time': row[4],
+                } for row in result
             ],
             'list_update_time': list_update_time,
         }
@@ -106,6 +107,8 @@ def create_case(cursor, request):
         return JsonResponse({'error': 'Insufficient permissions'})
     if not name or not description:
         return JsonResponse({'error': 'name or description is required.'})
+    if not tag or not re.match(r"^[A-Z][0-9]{2}$", tag):
+        return JsonResponse({'error': 'tag is required and must be in the format of "A00".'})
     cursor.execute(
         '''
         SELECT * FROM test_case_record tcr
@@ -121,6 +124,8 @@ def create_case(cursor, request):
         "description": description,
         "comment": comment,
     }
+    if approve_case(category, case_info):
+        return JsonResponse({'error': 'name already exists.'})
     cursor.execute(
         '''
         INSERT INTO test_case_record (case_details, editor, case_status, update_time)
@@ -162,33 +167,26 @@ def edit_case(cursor, request):
         SELECT * FROM test_case_permission
         WHERE category = %s AND ((case_permission ->> 'admin') ::jsonb @> to_jsonb(ARRAY[%s])  OR (case_permission ->> 'editor') ::jsonb @> to_jsonb(ARRAY[%s]));
         ''',
-        (category, mail_to_userid(user_id), mail_to_userid(user_id))
+        (category, user_views.mail_to_userid(user_id), user_views.mail_to_userid(user_id))
     )
     if not cursor.fetchone():
         return JsonResponse({'error': 'Insufficient permissions'})
     if not name or not description:
         return JsonResponse({'error': 'name or description is required.'})
-    # cursor.execute(
-    #     '''
-    #     SELECT * FROM test_case_record
-    #     WHERE case_details ->> 'name' = %s;
-    #     ''',
-    #     (name,)
-    # )
-    # if cursor.fetchone():
-    #     return JsonResponse({'error': 'name already exists.'})
     case_info = {
         "name": name,
         "description": description,
         "comment": comment,
     }
+    if approve_case(category, case_info, id):
+        return JsonResponse({'error': 'name or version already exists.'})
     cursor.execute(
         '''
         INSERT INTO test_case_record (case_details, editor, case_status, update_time)
         VALUES (%s, %s, %s, %s)
         RETURNING id;
         ''',
-        (json.dumps(case_info), mail_to_userid(user_id), "approve", timenow())
+        (json.dumps(case_info), user_views.mail_to_userid(user_id), "approve", timenow())
     )
     case_id = cursor.fetchone()[0]
     cursor.execute(
@@ -326,6 +324,146 @@ def edit_permission(cursor, request):
         operation = f"modify admin: {' '.join(admin)}, modify editor: {' '.join(editor)}"
         log_views.test_plan_log(user_id, operation)
         return JsonResponse({'finaldata': 'Successful'})
+
+#Test case permission
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def edit_permission(cursor, request):
+    user_id = request.user_id
+    category = request.data.get('category')
+    admin = request.data.get('admin')
+    editor = request.data.get('editor')
+    cursor.execute(
+        '''
+        SELECT * FROM test_case_permission
+        WHERE category = %s AND ((case_permission ->> 'admin') ::jsonb @> to_jsonb(ARRAY[%s]))
+        ''',
+        (category, mail_to_userid(user_id))
+    )
+    if not cursor.fetchone():
+        return JsonResponse({'error': 'Insufficient permissions'})
+    else:
+        case_permission_info = {
+            "admin": [mail_to_userid(num) for num in admin],
+            "editor": [mail_to_userid(num) for num in editor],
+        }    
+        cursor.execute(
+            '''
+            UPDATE test_case_permission
+            SET case_permission = %s
+            WHERE category = %s;
+            ''',
+            (json.dumps(case_permission_info), category)
+        )
+        operation = f"modify admin: {' '.join(admin)}, modify editor: {' '.join(editor)}"
+        log_views.test_plan_log(user_id, operation)
+        return JsonResponse({'finaldata': 'Successful'})
+
+
+#Test case delete
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def delete_case(cursor, request):
+    user_id = request.user_id
+    id = request.data.get('id')
+    case_id = request.data.get('case_id')
+    cursor.execute(
+        '''
+        UPDATE test_case_record
+        SET case_status = %s, update_time = %s
+        WHERE id = %s
+        ''',
+        ("delete", timenow(), case_id))
+    return JsonResponse({'finaldata': 'Successful'})
+
+#Test case restore
+@api_view(["post"])
+@csrf_exempt
+@with_db_connection
+def restore_case(cursor, request):
+    user_id = request.user_id
+    id = request.data.get('id')
+    case_id = request.data.get('case_id')
+    cursor.execute(
+        '''
+        UPDATE test_case_record
+        SET case_status = %s, update_time = %s
+        WHERE id = %s
+        ''',
+        ("approve", timenow(), case_id))
+    return JsonResponse({'finaldata': 'Successful'})
+
+@with_db_connection
+def approve_case(cursor, category, detail, case_list_id=None):
+    if not isinstance(detail, dict) or not all(key in detail for key in ["name", "description", "comment"]):
+        return True
+    case_name = detail["name"]
+    case_description = detail["description"]
+    case_comment = detail["comment"]
+    if case_list_id:
+        cursor.execute(
+            '''
+            SELECT * 
+            FROM test_case AS tc
+            WHERE tc.id = %s
+            AND EXISTS (
+                SELECT 1
+                FROM test_case_record AS tcr
+                WHERE tcr.case_details ->> 'name' = %s AND tcr.case_details ->> 'description' = %s AND tcr.case_details ->> 'comment' = %s
+                AND tcr.id IN (
+                    SELECT jsonb_array_elements_text(tc.case_details->'item_order')::int
+                )
+            );
+            ''',
+            (case_list_id, case_name, case_description, case_comment)
+        )
+        if cursor.fetchone():
+            return True
+        cursor.execute(
+            '''
+            SELECT * 
+            FROM test_case AS tc
+            WHERE tc.id != %s AND tc.category = %s
+            AND EXISTS (
+                SELECT 1
+                FROM test_case_record AS tcr
+                WHERE tcr.case_details ->> 'name' = %s
+                AND tcr.id IN (
+                    SELECT jsonb_array_elements_text(tc.case_details->'item_order')::int
+                )
+            );
+            ''',
+            (case_list_id, category, case_name)
+        )
+        if cursor.fetchone():
+            return True
+    else:
+        cursor.execute(
+            '''
+            SELECT * 
+            FROM test_case AS tc
+            WHERE tc.category = %s
+            AND EXISTS (
+                SELECT 1
+                FROM test_case_record AS tcr
+                WHERE tcr.case_details ->> 'name' = %s
+                AND tcr.id IN (
+                    SELECT jsonb_array_elements_text(tc.case_details->'item_order')::int
+                )
+            );
+            ''',
+            (category, case_name)
+        )
+        if cursor.fetchone():
+            return True
+    return False 
+    
+
+
+
+
 
 # time function 
 def timenow():
