@@ -1,0 +1,24 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  name: Default   # 用你的 self-hosted agent pool 名稱
+
+steps:
+- script: |
+    wsl bash -c "
+      cd /home/mika/test_django
+      source venv/bin/activate
+      pip install -r requirements.txt
+      cd mysite
+      python manage.py migrate
+      sudo systemctl restart gunicorn
+    "
+  displayName: 'Deploy Django backend in WSL'
+
+
