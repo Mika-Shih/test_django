@@ -11,7 +11,7 @@ pool:
 
 steps:
 - script: |
-    wsl bash -c "cd /home/mika/test_django && source venv/bin/activate && cd mysite && python manage.py migrate && nohup python manage.py runserver 0.0.0.0:8000 > nohup.out 2>&1 &"
+    wsl bash -c "cd /home/mika/test_django && source venv/bin/activate && cd mysite && python manage.py migrate && nohup python manage.py runserver 0.0.0.0:8000 > /home/mika/test_django/mysite/nohup.out 2>&1 &"
   displayName: 'Deploy Django backend in WSL'
 
 
